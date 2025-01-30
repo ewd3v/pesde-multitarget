@@ -1,0 +1,30 @@
+name = "jiwonz/multitarget"
+version = "0.1.0"
+description = "Build and publish your pure luau pesde project"
+authors = ["jiwonz <me@jiwonz.kr>"]
+repository = "https://github.com/jiwonz/pesde-multitarget"
+license = "MIT"
+includes = ["src/**", "LICENSE", "README.md", "pesde.toml"]
+
+[target]
+environment = "lune"
+lib = "src/lib.luau"
+
+[indices]
+default = "https://github.com/pesde-pkg/index"
+
+[dev_dependencies]
+selene = { name = "pesde/selene", version = "^0.27.1" }
+luau_lsp = { name = "pesde/luau_lsp", version = "^1.38.0" }
+stylua = { name = "pesde/stylua", version = "^2.0.2" }
+luau_check = { name = "jiwonz/luau_check", version = "^0.1.5" }
+
+[peer_dependencies]
+darklua = { name = "pesde/darklua", version = "^0.16.0" }
+
+[dependencies]
+dirs = { name = "jiwonz/dirs", version = "^0.3.0" }
+pathfs = { name = "jiwonz/pathfs", version = "^0.3.0" }
+greentea = { name = "corecii/greentea", version = "^0.4.11" }
+argparse = { name = "caveful_games/argparse", version = "^0.1.2" }
+glob = { name = "jiwonz/glob", version = "^0.1.0" }
