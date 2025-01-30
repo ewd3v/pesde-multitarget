@@ -1,5 +1,5 @@
 # pesde-multitarget
-Build and publish your pure luau pesde project targeting both `luau` and `roblox` targets at the same time.
+Build your pure pesde project easier targeting both `luau` and `roblox` targets at the same time
 
 ## How to use
 ### `pesde add` (recommended)
