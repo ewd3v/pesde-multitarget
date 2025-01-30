@@ -3,8 +3,10 @@ Build your pure pesde project easier targeting both `luau` and `roblox` targets 
 
 ## How to use
 ### `pesde add` (recommended)
-Add & Install this pesde package as a dev_dependency:
+Add & Install this pesde package and darklua as a dev_dependency:
 ```sh
+pesde add pesde/darklua --dev -t lune # Pass if darklua is installed already.
+
 pesde add jiwonz/multitarget --dev -t lune
 
 pesde install
@@ -28,7 +30,7 @@ multitarget.build(nil, "./path/to/output", { -- pesde project file path defaults
 ### `pesde x`
 Execute directly without installation:
 ```sh
-pesde x jiwonz/multitarget help
+pesde x jiwonz/multitarget --help
 ```
 
 ## Usage
