@@ -5,7 +5,7 @@ local fs = pathfs.fs
 local gt = require("../lune_packages/greentea")
 local glob = require("../lune_packages/glob")
 local process = require("@lune/process")
-local dirs = require("../lune_packages/dirs")
+local darklua = require("../lune_packages/darklua_lune")
 
 local ERROR_PREFIX = `{stdio.color("red")}{stdio.style("bold")}error{stdio.color("reset")}:`
 local DEFAULT_DARKLUA_RULES = {
@@ -25,41 +25,41 @@ local environmentType = gt.build(gt.union(gt.literal("luau"), gt.literal("lune")
 local optionalStringType = gt.build(gt.opt(gt.string()))
 local optionalStringArrayType = gt.build(gt.opt(gt.array(gt.string())))
 
-local function processDarklua(input: string, output: string, config: {})
-	local darkluaProcessArgs = {
-		"process",
-		input,
-		output,
-	}
-	--if not fs.isFile(".darklua.json") and not fs.isFile(".darklua.json5") then
-	local darkluaConfigFile = dirs.createTempFile()
+-- local function processDarklua(input: string, output: string, config: {})
+-- 	local darkluaProcessArgs = {
+-- 		"process",
+-- 		input,
+-- 		output,
+-- 	}
+-- 	--if not fs.isFile(".darklua.json") and not fs.isFile(".darklua.json5") then
+-- 	local darkluaConfigFile = dirs.createTempFile()
 
-	darkluaConfigFile:writeFile(serde.encode("json", config, true))
+-- 	darkluaConfigFile:writeFile(serde.encode("json", config, true))
 
-	table.insert(darkluaProcessArgs, "--config")
-	table.insert(darkluaProcessArgs, darkluaConfigFile.path:toString())
-	--end
+-- 	table.insert(darkluaProcessArgs, "--config")
+-- 	table.insert(darkluaProcessArgs, darkluaConfigFile.path:toString())
+-- 	--end
 
-	local result = process.spawn("darklua", darkluaProcessArgs, {
-		stdio = "forward",
-	})
-	if not result.ok then
-		stdio.ewrite(`{ERROR_PREFIX} darklua failed to build.\n\nstdout: {result.stdout}\n\nstderr: {result.stderr}\n`)
-		process.exit(1)
-		error("unreachable")
-	end
-end
+-- 	local result = process.spawn("darklua", darkluaProcessArgs, {
+-- 		stdio = "forward",
+-- 	})
+-- 	if not result.ok then
+-- 		stdio.ewrite(`{ERROR_PREFIX} darklua failed to build.\n\nstdout: {result.stdout}\n\nstderr: {result.stderr}\n`)
+-- 		process.exit(1)
+-- 		error("unreachable")
+-- 	end
+-- end
 
-local optionalAsPathType = gt.build(gt.opt(pathfs.gt.AsPath:type()))
+local optionalAsPathType = gt.build(gt.opt(pathfs.types.AsPath:type()))
 function multitarget.build(
 	pesdeTomlPath: typeof(optionalAsPathType:type()),
-	outputPath: typeof(pathfs.gt.AsPath:type()),
+	outputPath: typeof(pathfs.types.AsPath:type()),
 	targets: typeof(targetsType:type()),
 	buildFiles: typeof(optionalStringArrayType:type()),
 	luaEnvGlobal: typeof(optionalStringType:type())
 )
 	optionalAsPathType:assert(pesdeTomlPath)
-	pathfs.gt.AsPath:assert(outputPath)
+	pathfs.types.AsPath:assert(outputPath)
 	targetsType:assert(targets)
 	optionalStringArrayType:assert(buildFiles)
 	optionalStringType:assert(luaEnvGlobal)
@@ -139,7 +139,7 @@ function multitarget.build(
 					for _, rule in DEFAULT_DARKLUA_RULES do
 						table.insert(rules, rule)
 					end
-					processDarklua(buildFile, darkluaOutputPath:toString(), {
+					darklua.process(buildFile, darkluaOutputPath:toString(), {
 						rules = rules,
 					})
 				end
@@ -173,7 +173,7 @@ function multitarget.build(
 					for _, rule in DEFAULT_DARKLUA_RULES do
 						table.insert(rules, rule)
 					end
-					processDarklua(buildFile, darkluaOutputPath:toString(), {
+					darklua.process(buildFile, darkluaOutputPath:toString(), {
 						rules = rules,
 					})
 				end
