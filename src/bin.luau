@@ -76,7 +76,10 @@ setup:action(function()
 				end
 			end
 			if not found then
-				local yes = stdio.prompt("confirm", `Found a .gitignore file. Would you like to add the default output directory('{toIgnore}') to it?`)
+				local yes = stdio.prompt(
+					"confirm",
+					`Found a .gitignore file. Would you like to add the default output directory('{toIgnore}') to it?`
+				)
 				if yes then
 					content ..= "\n" .. toIgnore .. "\n"
 					gitignore:writeFile(content)
@@ -94,7 +97,8 @@ setup:action(function()
 						ignore_pattern: string?,
 					}?,
 				}?,
-			} = serde.decode("toml", seleneFile:readFile())
+			} =
+				serde.decode("toml", seleneFile:readFile())
 			local path = { "config", "global_usage", "ignore_pattern" }
 			if not tableGet(seleneToml, path) then
 				local yes = stdio.prompt(
@@ -109,24 +113,12 @@ setup:action(function()
 		end
 	end
 	do
-		local ok, result = pcall(
-			process.spawn,
-			"darklua",
-			{ "--version" }
-		)
+		local ok, result = pcall(process.spawn, "darklua", { "--version" })
 		if not ok or (ok and not result.ok) then
 			local yes = stdio.prompt("confirm", `darklua is not found. Would you like to install it from pesde?`)
 			if yes then
-				process.spawn(
-					"pesde",
-					{ "add", "pesde/darklua", "--dev", "-t", "lune" },
-					{ stdio = "forward" }
-				)
-				process.spawn(
-					"pesde",
-					{ "install" },
-					{ stdio = "forward" }
-				)
+				process.spawn("pesde", { "add", "pesde/darklua", "--dev", "-t", "lune" }, { stdio = "forward" })
+				process.spawn("pesde", { "install" }, { stdio = "forward" })
 			end
 		end
 	end
