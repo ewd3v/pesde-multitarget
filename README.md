@@ -35,6 +35,18 @@ pesde x jiwonz/multitarget --help
 
 ## Usage
 
+### `setup`
+Setups your project before building.
+
+With a binary:
+```sh
+multitarget setup
+```
+With `pesde x`:
+```sh
+pesde x jiwonz/multitarget setup
+```
+
 ### `build`
 Builds your pesde project targeting to `luau` and `roblox`.
 
