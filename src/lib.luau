@@ -197,10 +197,7 @@ function multitarget.build(
 			workspace_members = members,
 			target = { environment = "luau" },
 		}
-		fs.writeFile(
-			outputDir.path:join("pesde.toml"),
-			serde.encode("toml", workspacePesdeToml, true)
-		)
+		fs.writeFile(outputDir.path:join("pesde.toml"), serde.encode("toml", workspacePesdeToml, true))
 	end
 end
 

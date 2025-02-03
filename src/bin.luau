@@ -46,14 +46,7 @@ build:action(function(args: {
 		lune = args.lune,
 		roblox = args.roblox,
 	}
-	multitarget.build(
-		args.project,
-		output,
-		targets,
-		args.build_files,
-		args.global,
-		args.workspace
-	)
+	multitarget.build(args.project, output, targets, args.build_files, args.global, args.workspace)
 end)
 
 local function tableSet(t: {}, path: { any }, value: any)
@@ -144,7 +137,10 @@ setup:action(function()
 	do
 		local declarationFile = pathfs.File.new(".d.luau")
 		if not declarationFile:isFile() then
-			local yes = stdio.prompt("confirm", `Would you like to add .d.luau type declaration file for default lua environment global variable name('{DEFAULT_LUA_ENV_GLOBAL}')?`)
+			local yes = stdio.prompt(
+				"confirm",
+				`Would you like to add .d.luau type declaration file for default lua environment global variable name('{DEFAULT_LUA_ENV_GLOBAL}')?`
+			)
 			if yes then
 				declarationFile:writeFile(DEFAULT_DECLARATION_FILE_CONTENT)
 			end
