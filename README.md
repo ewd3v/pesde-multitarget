@@ -34,6 +34,7 @@ pesde x jiwonz/multitarget --help
 ```
 
 ## Usage
+Check the [example code](lune/example.luau) out.
 
 ### `setup`
 Setups your project before building.
