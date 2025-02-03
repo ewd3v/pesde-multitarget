@@ -6,4 +6,4 @@ lib.build("pesde.toml", "dist", {
 	roblox = true,
 }, {
 	"src",
-})
+}, nil, true)

@@ -24,6 +24,7 @@ local targetsType = gt.build(gt.table({
 local environmentType = gt.build(gt.union(gt.literal("luau"), gt.literal("lune"), gt.literal("roblox")))
 local optionalStringType = gt.build(gt.opt(gt.string()))
 local optionalStringArrayType = gt.build(gt.opt(gt.array(gt.string())))
+local optionalBooleanType = gt.build(gt.opt(gt.boolean()))
 
 -- local function processDarklua(input: string, output: string, config: {})
 -- 	local darkluaProcessArgs = {
@@ -56,19 +57,21 @@ function multitarget.build(
 	outputPath: typeof(pathfs.types.AsPath:type()),
 	targets: typeof(targetsType:type()),
 	buildFiles: typeof(optionalStringArrayType:type()),
-	luaEnvGlobal: typeof(optionalStringType:type())
+	luaEnvGlobal: typeof(optionalStringType:type()),
+	workspace: typeof(optionalBooleanType:type())
 )
 	optionalAsPathType:assert(pesdeTomlPath)
 	pathfs.types.AsPath:assert(outputPath)
 	targetsType:assert(targets)
 	optionalStringArrayType:assert(buildFiles)
 	optionalStringType:assert(luaEnvGlobal)
+	optionalBooleanType:assert(workspace)
 
 	-- selene: allow(shadowing)
 	local luaEnvGlobal = luaEnvGlobal or "LUA_ENV"
 	-- selene: allow(shadowing)
 	local pesdeTomlFile = pathfs.File.fromExisting(pesdeTomlPath or "pesde.toml")
-	local outputDir = pathfs.Directory.create(outputPath, true)
+	local outputDir = pathfs.Directory.new(outputPath)
 	local pesdeToml: {
 		includes: { string }?,
 		target: {
@@ -86,13 +89,14 @@ function multitarget.build(
 		error("unreachable")
 	end
 
-	for target: typeof(environmentType:type()), targetConfig: any in targets :: any do
-		if not targetConfig then
-			continue
-		end
+	local members = {}
+	for t, _ in targets :: { [typeof(environmentType:type())]: boolean } do
+		table.insert(members, t)
+	end
+	for _, target in members do
 		environmentType:assert(target)
 
-		local targetDir = pathfs.Directory.create(outputDir.path:join(target))
+		local targetDir = pathfs.Directory.new(outputDir.path:join(target))
 		-- selene: allow(shadowing)
 		local pesdeToml = table.clone(pesdeToml)
 		if pesdeToml.includes then
@@ -145,6 +149,7 @@ function multitarget.build(
 				end
 			elseif target == "roblox" then -- not ready yet, needs darklua path require conversion
 				pesdeToml.target.build_files = buildFiles
+				pesdeToml.target.bin = nil
 				for _, buildFile in buildFiles do
 					-- local luaurc = if fs.isFile(".luaurc") then
 					-- 	serde.decode("json", fs.readFile(".luaurc")) :: {
@@ -182,6 +187,20 @@ function multitarget.build(
 
 		pesdeToml.target.environment = target
 		fs.writeFile(targetDir.path:join("pesde.toml"), serde.encode("toml", pesdeToml, true))
+	end
+
+	if workspace then
+		local workspacePesdeToml = {
+			name = "multitarget/root",
+			version = "0.0.0",
+			private = true,
+			workspace_members = members,
+			target = { environment = "luau" },
+		}
+		fs.writeFile(
+			outputDir.path:join("pesde.toml"),
+			serde.encode("toml", workspacePesdeToml, true)
+		)
 	end
 end
 

@@ -7,34 +7,53 @@ local process = require("@lune/process")
 
 local DEFAULT_OUTPUT_DIR = "dist"
 local DEFAULT_LUA_ENV_GLOBAL = "LUA_ENV"
+local DEFAULT_DECLARATION_FILE_CONTENT = `declare _G: \{\
+{DEFAULT_LUA_ENV_GLOBAL}: "luau" | "lune" | "roblox",\
+\}\
+`
 
 local cli = argparse("multitarget")
 
 local build = cli:command("build", "Build a pesde project for multiple targets")
-build:argument("config", "Path to the pesde.toml file"):default("pesde.toml")
+build:argument("project", "Path to the pesde.toml file"):default("pesde.toml")
 build:option("-o --output", "Output directory"):default(DEFAULT_OUTPUT_DIR)
 build:option("-g --global", "Lua environment global variable name"):default(DEFAULT_LUA_ENV_GLOBAL)
+build:flag("--workspace", "Build as pesde workspace")
 build:flag("--luau", "Build for Luau")
 build:flag("--lune", "Build for Lune")
 build:flag("--roblox", "Build for Roblox")
+build:flag("--all", "Build for every targets (luau, lune, roblox)")
 build:option("--build-files", "Paths to build files"):args("*")
 build:action(function(args: {
-	config: string,
+	project: string,
 	output: string,
 	global: string,
+	workspace: boolean,
 	luau: boolean,
 	lune: boolean,
 	roblox: boolean,
+	all: boolean,
 	build_files: { string }?,
 })
-	local config = args.config
 	local output = args.output
+	if args.all then
+		args.luau = true
+		args.lune = true
+		args.roblox = true
+	end
 	local targets = {
 		luau = args.luau,
 		lune = args.lune,
 		roblox = args.roblox,
 	}
-	multitarget.build(config, output, targets, args.build_files, args.global)
+	multitarget.build(
+		args.project,
+		output,
+		targets,
+		args.build_files,
+		args.global,
+		args.workspace
+	)
 end)
 
 local function tableSet(t: {}, path: { any }, value: any)
@@ -119,6 +138,15 @@ setup:action(function()
 			if yes then
 				process.spawn("pesde", { "add", "pesde/darklua", "--dev", "-t", "lune" }, { stdio = "forward" })
 				process.spawn("pesde", { "install" }, { stdio = "forward" })
+			end
+		end
+	end
+	do
+		local declarationFile = pathfs.File.new(".d.luau")
+		if not declarationFile:isFile() then
+			local yes = stdio.prompt("confirm", `Would you like to add .d.luau type declaration file for default lua environment global variable name('{DEFAULT_LUA_ENV_GLOBAL}')?`)
+			if yes then
+				declarationFile:writeFile(DEFAULT_DECLARATION_FILE_CONTENT)
 			end
 		end
 	end
