@@ -1,6 +1,6 @@
 name = "jiwonz/multitarget"
-version = "0.1.0"
-description = "Build your pure pesde project easier targeting both `luau` and `roblox` targets at the same time"
+version = "0.2.0"
+description = "Customizable build script for multiple pesde targets"
 authors = ["jiwonz <me@jiwonz.kr>"]
 repository = "https://github.com/jiwonz/pesde-multitarget"
 license = "MIT"
@@ -13,6 +13,9 @@ bin = "src/bin.luau"
 
 [indices]
 default = "https://github.com/pesde-pkg/index"
+
+[scripts]
+example = "scripts/example.luau"
 
 [dev_dependencies]
 selene = { name = "pesde/selene", version = "^0.28.0" }
