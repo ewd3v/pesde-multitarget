@@ -8,7 +8,7 @@ local process = require("@lune/process")
 local DEFAULT_OUTPUT_DIR = "dist"
 local DEFAULT_LUA_ENV_GLOBAL = "LUA_ENV"
 local DEFAULT_DECLARATION_FILE_CONTENT = `declare _G: \{\
-{DEFAULT_LUA_ENV_GLOBAL}: "luau" | "lune" | "roblox",\
+	{DEFAULT_LUA_ENV_GLOBAL}: ("luau" | "lune" | "roblox")?,\
 \}\
 `
 
