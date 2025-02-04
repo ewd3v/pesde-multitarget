@@ -32,7 +32,7 @@ multitarget.build(nil, "./path/to/output", { -- pesde project file path defaults
 ### `pesde x`
 Execute directly without installation:
 ```sh
-pesde x jiwonz/multitarget --help
+pesde x jiwonz/multitarget -- --help
 ```
 
 ## Usage
@@ -65,5 +65,5 @@ multitarget build ./path/to/pesde.toml -o ./path/to/output --build-files [..buil
 ```
 With `pesde x`:
 ```sh
-pesde x jiwonz/multitarget build ...
+pesde x jiwonz/multitarget -- build ...
 ```
