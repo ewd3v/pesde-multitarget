@@ -26,31 +26,6 @@ local optionalStringType = gt.build(gt.opt(gt.string()))
 local optionalStringArrayType = gt.build(gt.opt(gt.array(gt.string())))
 local optionalBooleanType = gt.build(gt.opt(gt.boolean()))
 
--- local function processDarklua(input: string, output: string, config: {})
--- 	local darkluaProcessArgs = {
--- 		"process",
--- 		input,
--- 		output,
--- 	}
--- 	--if not fs.isFile(".darklua.json") and not fs.isFile(".darklua.json5") then
--- 	local darkluaConfigFile = dirs.createTempFile()
-
--- 	darkluaConfigFile:writeFile(serde.encode("json", config, true))
-
--- 	table.insert(darkluaProcessArgs, "--config")
--- 	table.insert(darkluaProcessArgs, darkluaConfigFile.path:toString())
--- 	--end
-
--- 	local result = process.spawn("darklua", darkluaProcessArgs, {
--- 		stdio = "forward",
--- 	})
--- 	if not result.ok then
--- 		stdio.ewrite(`{ERROR_PREFIX} darklua failed to build.\n\nstdout: {result.stdout}\n\nstderr: {result.stderr}\n`)
--- 		process.exit(1)
--- 		error("unreachable")
--- 	end
--- end
-
 local optionalAsPathType = gt.build(gt.opt(pathfs.types.AsPath:type()))
 function multitarget.build(
 	pesdeTomlPath: typeof(optionalAsPathType:type()),
@@ -151,11 +126,6 @@ function multitarget.build(
 				pesdeToml.target.build_files = buildFiles
 				pesdeToml.target.bin = nil
 				for _, buildFile in buildFiles do
-					-- local luaurc = if fs.isFile(".luaurc") then
-					-- 	serde.decode("json", fs.readFile(".luaurc")) :: {
-					-- 		aliases: { [string]: string },
-					-- 	}
-					-- else nil
 					local darkluaOutputPath = targetDir.path:join(buildFile)
 
 					local rules = {
@@ -164,9 +134,6 @@ function multitarget.build(
 							rule = "convert_require",
 							current = {
 								name = "path",
-								-- sources = if luaurc then -- remove this after darklua 0.16.0
-								-- 	luaurc.aliases
-								-- else nil,
 							},
 							target = {
 								name = "roblox",
