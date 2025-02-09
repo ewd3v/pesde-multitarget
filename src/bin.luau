@@ -149,7 +149,8 @@ setup:action(function()
 		end
 	end
 	do
-		local vscodeSettings = pathfs.File.new(".vscode/settings.json")
+		local vscodeDir = pathfs.Directory.new(".vscode")
+		local vscodeSettings = pathfs.File.new(vscodeDir.path:join("settings.json"))
 		local settings: {
 			["luau-lsp.types.definitionFiles"]: { string }?,
 		} = if vscodeSettings:isFile()
@@ -161,6 +162,9 @@ setup:action(function()
 			local defFiles = settings["luau-lsp.types.definitionFiles"] or {}
 			table.insert(defFiles, ".d.luau")
 			settings["luau-lsp.types.definitionFiles"] = defFiles
+			if not vscodeDir:isDir() then
+				vscodeDir:writeDir()
+			end
 			vscodeSettings:writeFile(serde.encode("json", settings, true))
 		end
 	end
