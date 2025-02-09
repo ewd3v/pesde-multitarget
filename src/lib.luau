@@ -14,6 +14,15 @@ local DEFAULT_DARKLUA_RULES = {
 	"remove_empty_do",
 }
 
+type Dependency = {
+	name: string?,
+	version: string?,
+	wally: string?,
+	workspace: string?,
+	repo: string?,
+	path: string?,
+}
+
 local multitarget = {}
 
 local targetsType = gt.build(gt.table({
@@ -54,7 +63,11 @@ function multitarget.build(
 			lib: string?,
 			bin: string?,
 			build_files: { string }?,
+			scripts: { [string]: string }?,
 		},
+		dependencies: { [string]: Dependency }?,
+		dev_dependencies: { [string]: Dependency }?,
+		peer_dependencies: { [string]: Dependency }?,
 	} =
 		serde.decode("toml", pesdeTomlFile:readFile())
 
@@ -63,19 +76,51 @@ function multitarget.build(
 		process.exit(1)
 		error("unreachable")
 	end
+	-- selene: allow(shadowing)
+	local buildFiles = (pesdeToml.target.build_files or buildFiles) :: typeof(buildFiles)
+
+	local pesdeAddParams = {}
+	local function getPackageName(dep: Dependency): string?
+		if dep.name and dep.version then
+			return `{dep.name}/{dep.version}`
+		end
+		if dep.wally and dep.version then
+			return `wally#{dep.name}/{dep.version}`
+		end
+		return nil
+	end
+	if pesdeToml.dependencies then
+		for _, dep in pesdeToml.dependencies do
+			local packageName = getPackageName(dep)
+			if packageName then
+				table.insert(pesdeAddParams, { packageName })
+			end
+		end
+	end
+	if pesdeToml.peer_dependencies then
+		for _, dep in pesdeToml.peer_dependencies do
+			local packageName = getPackageName(dep)
+			if packageName then
+				table.insert(pesdeAddParams, { "--peer", packageName })
+			end
+		end
+	end
 
 	local members = {}
 	for t, _ in targets :: { [typeof(environmentType:type())]: boolean } do
 		table.insert(members, t)
+	end
+	if not buildFiles then
+		print(`{stdio.color("yellow")}warning{stdio.color("reset")}: None of build files are specified. The files may not be processed properly.`)
 	end
 	for _, target in members do
 		environmentType:assert(target)
 
 		local targetDir = pathfs.Directory.new(outputDir.path:join(target))
 		-- selene: allow(shadowing)
-		local pesdeToml = table.clone(pesdeToml)
-		if pesdeToml.includes then
-			for _, include in pesdeToml.includes do
+		local newPesdeToml = table.clone(pesdeToml)
+		if newPesdeToml.includes then
+			for _, include in newPesdeToml.includes do
 				for _, path in glob(include) do
 					local dest = targetDir.path:join(path)
 					local parent = dest:parent()
@@ -86,21 +131,21 @@ function multitarget.build(
 				end
 			end
 		else
-			if pesdeToml.target.lib then
-				local dest = targetDir.path:join(pesdeToml.target.lib)
+			if newPesdeToml.target.lib then
+				local dest = targetDir.path:join(newPesdeToml.target.lib)
 				local parent = dest:parent()
 				if parent then
 					fs.writeDir(parent)
 				end
-				fs.copy(pesdeToml.target.lib, dest, true)
+				fs.copy(newPesdeToml.target.lib, dest, true)
 			end
-			if pesdeToml.target.bin then
-				local dest = targetDir.path:join(pesdeToml.target.bin)
+			if newPesdeToml.target.bin then
+				local dest = targetDir.path:join(newPesdeToml.target.bin)
 				local parent = dest:parent()
 				if parent then
 					fs.writeDir(parent)
 				end
-				fs.copy(pesdeToml.target.bin, dest, true)
+				fs.copy(newPesdeToml.target.bin, dest, true)
 			end
 		end
 
@@ -111,6 +156,7 @@ function multitarget.build(
 		}
 		if buildFiles then
 			if target == "luau" or target == "lune" then
+				newPesdeToml.target.build_files = nil
 				for _, buildFile in buildFiles do
 					local darkluaOutputPath = targetDir.path:join(buildFile)
 
@@ -122,9 +168,10 @@ function multitarget.build(
 						rules = rules,
 					})
 				end
-			elseif target == "roblox" then -- not ready yet, needs darklua path require conversion
-				pesdeToml.target.build_files = buildFiles
-				pesdeToml.target.bin = nil
+			elseif target == "roblox" then
+				newPesdeToml.target.build_files = buildFiles
+				newPesdeToml.target.bin = nil
+				newPesdeToml.target.scripts = nil
 				for _, buildFile in buildFiles do
 					local darkluaOutputPath = targetDir.path:join(buildFile)
 
@@ -152,8 +199,29 @@ function multitarget.build(
 			end
 		end
 
-		pesdeToml.target.environment = target
-		fs.writeFile(targetDir.path:join("pesde.toml"), serde.encode("toml", pesdeToml, true))
+		newPesdeToml.target.environment = target
+		newPesdeToml.dev_dependencies = nil
+		newPesdeToml.peer_dependencies = nil
+		newPesdeToml.dependencies = nil
+		fs.writeFile(targetDir.path:join("pesde.toml"), serde.encode("toml", newPesdeToml, true))
+
+		for _, pesdeAddParam in pesdeAddParams do
+			local params = { "add" }
+			for _, param in pesdeAddParam do
+				table.insert(params, param)
+			end
+			table.insert(params, "--target")
+			table.insert(params, target)
+			local result = process.spawn("pesde", params, {
+				cwd = targetDir.path:toString(),
+				stdio = "inherit",
+			})
+			if not result.ok then
+				stdio.ewrite(`{ERROR_PREFIX} Failed to add dependencies to '{target}' target.\n`)
+				process.exit(1)
+				error("unreachable")
+			end
+		end
 	end
 
 	if workspace then
