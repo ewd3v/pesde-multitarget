@@ -1,6 +1,8 @@
 # pesde-multitarget
 Build your pure pesde project easier targeting both `luau` and `roblox` targets at the same time
 
+No more annoying package build scripts manually! (But this doesn't support `wally`)
+
 ## How to use
 ### `pesde add` (recommended)
 Add & Install this pesde package and darklua as a dev_dependency:
