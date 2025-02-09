@@ -111,7 +111,9 @@ function multitarget.build(
 		table.insert(members, t)
 	end
 	if not buildFiles then
-		print(`{stdio.color("yellow")}warning{stdio.color("reset")}: None of build files are specified. The files may not be processed properly.`)
+		print(
+			`{stdio.color("yellow")}warning{stdio.color("reset")}: None of build files are specified. The files may not be processed properly.`
+		)
 	end
 	for _, target in members do
 		environmentType:assert(target)
