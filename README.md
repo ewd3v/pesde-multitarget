@@ -15,7 +15,7 @@ pesde install
 ```
 Use as a binary:
 ```sh
-multitarget help
+multitarget --help
 ```
 Use a library in a lune script:
 ```luau
@@ -49,7 +49,7 @@ multitarget setup
 ```
 With `pesde x`:
 ```sh
-pesde x jiwonz/multitarget setup
+pesde x jiwonz/multitarget -- setup
 ```
 
 ### `build`
