@@ -1,5 +1,5 @@
 name = "jiwonz/multitarget"
-version = "0.2.1-rc.2"
+version = "0.2.1-rc.3"
 description = "Customizable build script for multiple pesde targets"
 authors = ["jiwonz <me@jiwonz.kr>"]
 repository = "https://github.com/jiwonz/pesde-multitarget"
@@ -21,7 +21,7 @@ example = "scripts/example.luau"
 darklua = { name = "pesde/darklua", version = "^0.16.0" }
 
 [dependencies]
-pathfs = { name = "jiwonz/pathfs", version = "^0.4.0" }
+pathfs = { name = "jiwonz/pathfs", version = "^0.5.2" }
 greentea = { name = "corecii/greentea", version = "^0.4.11" }
 argparse = { name = "caveful_games/argparse", version = "^0.1.2" }
 glob = { name = "jiwonz/glob", version = "^0.1.0" }
