@@ -221,6 +221,13 @@ function multitarget.build(
 				cwd = targetDir.path:toString(),
 				stdio = "inherit",
 			})
+			if not result.ok and target == "lune" then
+				params[#params] = "luau"
+				result = process.spawn("pesde", params, {
+					cwd = targetDir.path:toString(),
+					stdio = "inherit",
+				})
+			end
 			if not result.ok then
 				stdio.ewrite(`{ERROR_PREFIX} Failed to add dependencies to '{target}' target.\n`)
 				process.exit(1)
