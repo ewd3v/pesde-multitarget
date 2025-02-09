@@ -68,6 +68,7 @@ function multitarget.build(
 		dependencies: { [string]: Dependency }?,
 		dev_dependencies: { [string]: Dependency }?,
 		peer_dependencies: { [string]: Dependency }?,
+		private: boolean?,
 	} =
 		serde.decode("toml", pesdeTomlFile:readFile())
 
@@ -150,6 +151,8 @@ function multitarget.build(
 				fs.copy(newPesdeToml.target.bin, dest, true)
 			end
 		end
+
+		newPesdeToml.private = nil
 
 		local injectGlobalValueRule = {
 			rule = "inject_global_value",
