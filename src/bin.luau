@@ -88,11 +88,10 @@ setup:action(function()
 				end
 			end
 			if not found then
-				local yes = stdio.prompt(
+				if stdio.prompt(
 					"confirm",
 					`Found a .gitignore file. Would you like to add the default output directory('{toIgnore}') to it?`
-				)
-				if yes then
+				) then
 					content ..= "\n" .. toIgnore .. "\n"
 					gitignore:writeFile(content)
 				end
@@ -113,11 +112,10 @@ setup:action(function()
 				serde.decode("toml", seleneFile:readFile())
 			local path = { "config", "global_usage", "ignore_pattern" }
 			if not tableGet(seleneToml, path) then
-				local yes = stdio.prompt(
+				if stdio.prompt(
 					"confirm",
-					`Found a selene.toml file. Would you to add the default lua environment global variable name('{DEFAULT_LUA_ENV_GLOBAL}') to the ignore pattern?`
-				)
-				if yes then
+					`Found a selene.toml file. Would you like to add the default lua environment global variable name('{DEFAULT_LUA_ENV_GLOBAL}') to the ignore pattern?`
+				) then
 					tableSet(seleneToml, path, DEFAULT_LUA_ENV_GLOBAL)
 					seleneFile:writeFile(serde.encode("toml", seleneToml, true))
 				end
@@ -127,8 +125,7 @@ setup:action(function()
 	do
 		local ok, result = pcall(process.spawn, "darklua", { "--version" })
 		if not ok or (ok and not result.ok) then
-			local yes = stdio.prompt("confirm", `darklua is not found. Would you like to install it from pesde?`)
-			if yes then
+			if stdio.prompt("confirm", `darklua is not found. Would you like to install it from pesde?`) then
 				process.spawn("pesde", { "add", "pesde/darklua", "--dev", "-t", "lune" }, { stdio = "forward" })
 				process.spawn("pesde", { "install" }, { stdio = "forward" })
 			end
@@ -137,13 +134,28 @@ setup:action(function()
 	do
 		local declarationFile = pathfs.File.new(".d.luau")
 		if not declarationFile:isFile() then
-			local yes = stdio.prompt(
+			if stdio.prompt(
 				"confirm",
-				`Would you like to add .d.luau type declaration file for default lua environment global variable name('{DEFAULT_LUA_ENV_GLOBAL}')?`
-			)
-			if yes then
+				`Would you like to add .d.luau type definition file for default lua environment global variable name('{DEFAULT_LUA_ENV_GLOBAL}')?`
+			) then
 				declarationFile:writeFile(DEFAULT_DECLARATION_FILE_CONTENT)
 			end
+		end
+	end
+	do
+		local vscodeSettings = pathfs.File.new(".vscode/settings.json")
+		local settings: {
+			["luau-lsp.types.definitionFiles"]: { string }?,
+		} = if vscodeSettings:isFile() then serde.decode("json", vscodeSettings:readFile())
+			else {}
+		if stdio.prompt(
+			"confirm",
+			"Would you like to add .d.luau type definition file to '.vscode/settings.json'?"
+		) then
+			local defFiles = settings["luau-lsp.types.definitionFiles"] or {}
+			table.insert(defFiles, ".d.luau")
+			settings["luau-lsp.types.definitionFiles"] = defFiles
+			vscodeSettings:writeFile(serde.encode("json", settings, true))
 		end
 	end
 
