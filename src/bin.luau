@@ -156,16 +156,18 @@ setup:action(function()
 		} = if vscodeSettings:isFile()
 			then serde.decode("json", vscodeSettings:readFile())
 			else {}
-		if
-			stdio.prompt("confirm", "Would you like to add .d.luau type definition file to '.vscode/settings.json'?")
-		then
-			local defFiles = settings["luau-lsp.types.definitionFiles"] or {}
-			table.insert(defFiles, ".d.luau")
-			settings["luau-lsp.types.definitionFiles"] = defFiles
-			if not vscodeDir:isDir() then
-				vscodeDir:writeDir()
+		if not settings["luau-lsp.types.definitionFiles"] or not table.find(settings["luau-lsp.types.definitionFiles"], ".d.luau") then
+			if
+				stdio.prompt("confirm", "Would you like to add .d.luau type definition file to '.vscode/settings.json'?")
+			then
+				local defFiles = settings["luau-lsp.types.definitionFiles"] or {}
+				table.insert(defFiles, ".d.luau")
+				settings["luau-lsp.types.definitionFiles"] = defFiles
+				if not vscodeDir:isDir() then
+					vscodeDir:writeDir()
+				end
+				vscodeSettings:writeFile(serde.encode("json", settings, true))
 			end
-			vscodeSettings:writeFile(serde.encode("json", settings, true))
 		end
 	end
 
