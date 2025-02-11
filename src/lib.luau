@@ -83,10 +83,10 @@ function multitarget.build(
 	local pesdeAddParams = {}
 	local function getPackageName(dep: Dependency): string?
 		if dep.name and dep.version then
-			return `{dep.name}/{dep.version}`
+			return `{dep.name}@{dep.version}`
 		end
 		if dep.wally and dep.version then
-			return `wally#{dep.name}/{dep.version}`
+			return `wally#{dep.name}@{dep.version}`
 		end
 		return nil
 	end
