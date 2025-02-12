@@ -1,4 +1,4 @@
-local lib = require("../")
+local lib = require("../src/lib")
 
 lib.build(
 	"pesde.toml",
