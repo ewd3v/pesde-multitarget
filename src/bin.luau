@@ -100,7 +100,12 @@ setup:action(function()
 			private: boolean?,
 		} = serde.decode("toml", pesdeToml:readFile())
 		if not pesdeManifest.private then
-			if stdio.prompt("confirm", `Would you like to set 'private = true' in the current project's pesde.toml? (because usually your root project is not for publish)`) then
+			if
+				stdio.prompt(
+					"confirm",
+					`Would you like to set 'private = true' in the current project's pesde.toml? (because usually your root project is not for publish)`
+				)
+			then
 				tableSet(pesdeManifest, { "private" }, true)
 				pesdeToml:writeFile(serde.encode("toml", pesdeManifest, true))
 			end
