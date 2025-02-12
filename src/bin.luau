@@ -100,7 +100,9 @@ setup:action(function()
 			private: boolean?,
 		} = serde.decode("toml", pesdeToml:readFile())
 		if not pesdeManifest.private then
-			print(`{stdio.color("yellow")}warn{stdio.color("reset")}: It is recommended to set 'private = true' in 'pesde.toml' to prevent accidental publishing the root project.\n`)
+			print(
+				`{stdio.color("yellow")}warn{stdio.color("reset")}: It is recommended to set 'private = true' in 'pesde.toml' to prevent accidental publishing the root project.\n`
+			)
 		end
 	end
 	do
