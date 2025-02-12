@@ -17,18 +17,33 @@ Use as a binary:
 ```sh
 multitarget --help
 ```
-Use a library in a lune script:
+Use a library with pesde scripts(runtime is lune actually):
 ```luau
--- lune/build.luau
+-- scripts/build.luau
 
 local multitarget = require("../lune_packages/multitarget")
 
-multitarget.build(nil, "./path/to/output", { -- pesde project file path defaults to "pesde.toml"
-	luau = true,
-	roblox = true,
-}, {
-	"build files path" -- files/directories to be built
-}, true) -- if this is true, it will create a pesde workspace project in dist folder (this is helpful when publish them at the same time faster)
+multitarget.build(
+	"pesde.toml",
+	"./path/to/output",
+	{ -- pesde project file path defaults to "pesde.toml"
+		luau = true,
+		roblox = true,
+	},
+	{
+		"build files path" -- files/directories to be built
+	},
+	"LUA_ENV",
+	true -- if this is true, it will create a pesde workspace project in dist folder (this is helpful when publish them at the same time faster)
+)
+```
+`pesde.toml`
+```toml
+[scripts]
+build = "scripts/build.luau"
+```
+```sh
+pesde run build
 ```
 
 ### `pesde x`
@@ -38,7 +53,7 @@ pesde x jiwonz/multitarget -- --help
 ```
 
 ## Usage
-Check the [example code](lune/example.luau) out.
+Check the [example code](lune/example.luau) out. and run `multitarget --help` for more information about commands and arguments.
 
 ### `setup`
 Setups your project before building.
