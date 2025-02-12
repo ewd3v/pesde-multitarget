@@ -5,12 +5,18 @@ local stdio = require("@lune/stdio")
 local serde = require("@lune/serde")
 local process = require("@lune/process")
 
+local ERROR_PREFIX = `{stdio.color("red")}{stdio.style("bold")}error{stdio.color("reset")}:`
 local DEFAULT_OUTPUT_DIR = "dist"
 local DEFAULT_LUA_ENV_GLOBAL = "LUA_ENV"
 local DEFAULT_DECLARATION_FILE_CONTENT = `declare _G: \{\
 	{DEFAULT_LUA_ENV_GLOBAL}: ("luau" | "lune" | "roblox")?,\
 \}\
 `
+local TARGETS_COLORS = {
+	luau = stdio.color("blue"),
+	lune = stdio.color("purple"),
+	roblox = stdio.color("red"),
+}
 
 local cli = argparse("multitarget")
 
@@ -22,7 +28,7 @@ build:flag("-w --workspace", "Build as pesde workspace")
 build:flag("--luau", "Build for Luau")
 build:flag("--lune", "Build for Lune")
 build:flag("--roblox", "Build for Roblox")
-build:flag("--all", "Build for every targets (luau, lune, roblox)")
+build:flag("-a --all", "Build for every targets (luau, lune, roblox)")
 build:option("--build-files", "Paths to build files"):args("*")
 build:action(function(args: {
 	project: string,
@@ -47,6 +53,14 @@ build:action(function(args: {
 		roblox = args.roblox,
 	}
 	multitarget.build(args.project, output, targets, args.build_files, args.global, args.workspace)
+
+	local colorfulTargets = {}
+	for target: string, enabled: boolean in targets :: any do
+		if enabled then
+			table.insert(colorfulTargets, TARGETS_COLORS[target] .. target .. stdio.color("reset"))
+		end
+	end
+	print(`\n{stdio.color("green")}Build completed!{stdio.color("reset")} {table.concat(colorfulTargets, ",")}`)
 end)
 
 local function tableSet(t: {}, path: { any }, value: any)
@@ -75,6 +89,23 @@ end
 
 local setup = cli:command("setup", "Setup your project before building")
 setup:action(function()
+	do
+		local pesdeToml = pathfs.File.new("pesde.toml")
+		if not pesdeToml:isFile() then
+			stdio.ewrite(`{ERROR_PREFIX} pesde.toml is not found. Are you in the right directory?\n`)
+			process.exit(1)
+			error("unreachable")
+		end
+		local pesdeManifest: {
+			private: boolean?,
+		} = serde.decode("toml", pesdeToml:readFile())
+		if not pesdeManifest.private then
+			if stdio.prompt("confirm", `Would you like to set 'private = true' in the current project's pesde.toml? (because usually your root project is not for publish)`) then
+				tableSet(pesdeManifest, { "private" }, true)
+				pesdeToml:writeFile(serde.encode("toml", pesdeManifest, true))
+			end
+		end
+	end
 	do
 		local gitignore = pathfs.findFile(".gitignore")
 		if gitignore then
