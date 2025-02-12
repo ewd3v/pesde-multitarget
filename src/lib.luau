@@ -229,7 +229,9 @@ function multitarget.build(
 				})
 			end
 			if not result.ok then
-				stdio.ewrite(`{ERROR_PREFIX} Failed to add dependencies to '{target}' target.\n`)
+				stdio.ewrite(
+					`{ERROR_PREFIX} Failed to add dependency '{table.concat(pesdeAddParam, " ")}' to '{target}' target.\n`
+				)
 				process.exit(1)
 				error("unreachable")
 			end
