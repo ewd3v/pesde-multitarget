@@ -64,6 +64,8 @@ multitarget build --output ./path/to/output --build-files [..build_files] # If n
 multitarget build -o ./path/to/output --build-files [..build_files] # Shorter arguments are supported.
 
 multitarget build ./path/to/pesde.toml -o ./path/to/output --build-files [..build_files] # You can pass pesde.toml optionally.
+
+multitarget build -w -a --build-files src # Build for every(-a --all) targets with workspace(-w --workspace) pesde project (luau, lune, roblox)
 ```
 With `pesde x`:
 ```sh
