@@ -35,16 +35,15 @@ local optionalStringType = gt.build(gt.opt(gt.string()))
 local optionalStringArrayType = gt.build(gt.opt(gt.array(gt.string())))
 local optionalBooleanType = gt.build(gt.opt(gt.boolean()))
 
-local optionalAsPathType = gt.build(gt.opt(pathfs.types.AsPath:type()))
 function multitarget.build(
-	pesdeTomlPath: typeof(optionalAsPathType:type()),
+	pesdeTomlPath: typeof(pathfs.types.AsPath:type()),
 	outputPath: typeof(pathfs.types.AsPath:type()),
 	targets: typeof(targetsType:type()),
 	buildFiles: typeof(optionalStringArrayType:type()),
 	luaEnvGlobal: typeof(optionalStringType:type()),
 	workspace: typeof(optionalBooleanType:type())
 )
-	optionalAsPathType:assert(pesdeTomlPath)
+	pathfs.types.AsPath:assert(pesdeTomlPath)
 	pathfs.types.AsPath:assert(outputPath)
 	targetsType:assert(targets)
 	optionalStringArrayType:assert(buildFiles)
@@ -52,9 +51,7 @@ function multitarget.build(
 	optionalBooleanType:assert(workspace)
 
 	-- selene: allow(shadowing)
-	local luaEnvGlobal = luaEnvGlobal or "LUA_ENV"
-	-- selene: allow(shadowing)
-	local pesdeTomlFile = pathfs.File.fromExisting(pesdeTomlPath or "pesde.toml")
+	local pesdeTomlFile = pathfs.File.fromExisting(pesdeTomlPath)
 	local outputDir = pathfs.Directory.new(outputPath)
 	local pesdeToml: {
 		includes: { string }?,
@@ -154,52 +151,54 @@ function multitarget.build(
 
 		newPesdeToml.private = nil
 
-		local injectGlobalValueRule = {
-			rule = "inject_global_value",
-			identifier = luaEnvGlobal,
-			value = target,
-		}
-		if buildFiles then
-			if target == "luau" or target == "lune" then
-				newPesdeToml.target.build_files = nil
-				for _, buildFile in buildFiles do
-					local darkluaOutputPath = targetDir.path:join(buildFile)
+		if luaEnvGlobal then
+			local injectGlobalValueRule = {
+				rule = "inject_global_value",
+				identifier = luaEnvGlobal,
+				value = target,
+			}
+			if buildFiles then
+				if target == "luau" or target == "lune" then
+					newPesdeToml.target.build_files = nil
+					for _, buildFile in buildFiles do
+						local darkluaOutputPath = targetDir.path:join(buildFile)
 
-					local rules = { injectGlobalValueRule :: any }
-					for _, rule in DEFAULT_DARKLUA_RULES do
-						table.insert(rules, rule)
+						local rules = { injectGlobalValueRule :: any }
+						for _, rule in DEFAULT_DARKLUA_RULES do
+							table.insert(rules, rule)
+						end
+						darklua.process(buildFile, darkluaOutputPath:toString(), {
+							rules = rules,
+						})
 					end
-					darklua.process(buildFile, darkluaOutputPath:toString(), {
-						rules = rules,
-					})
-				end
-			elseif target == "roblox" then
-				newPesdeToml.target.build_files = buildFiles
-				newPesdeToml.target.bin = nil
-				newPesdeToml.target.scripts = nil
-				for _, buildFile in buildFiles do
-					local darkluaOutputPath = targetDir.path:join(buildFile)
+				elseif target == "roblox" then
+					newPesdeToml.target.build_files = buildFiles
+					newPesdeToml.target.bin = nil
+					newPesdeToml.target.scripts = nil
+					for _, buildFile in buildFiles do
+						local darkluaOutputPath = targetDir.path:join(buildFile)
 
-					local rules = {
-						injectGlobalValueRule :: any,
-						{
-							rule = "convert_require",
-							current = {
-								name = "path",
+						local rules = {
+							injectGlobalValueRule :: any,
+							{
+								rule = "convert_require",
+								current = {
+									name = "path",
+								},
+								target = {
+									name = "roblox",
+									indexing_style = "property",
+									rojo_sourcemap = if fs.isFile("sourcemap.json") then "sourcemap.json" else nil,
+								},
 							},
-							target = {
-								name = "roblox",
-								indexing_style = "property",
-								rojo_sourcemap = if fs.isFile("sourcemap.json") then "sourcemap.json" else nil,
-							},
-						},
-					}
-					for _, rule in DEFAULT_DARKLUA_RULES do
-						table.insert(rules, rule)
+						}
+						for _, rule in DEFAULT_DARKLUA_RULES do
+							table.insert(rules, rule)
+						end
+						darklua.process(buildFile, darkluaOutputPath:toString(), {
+							rules = rules,
+						})
 					end
-					darklua.process(buildFile, darkluaOutputPath:toString(), {
-						rules = rules,
-					})
 				end
 			end
 		end
