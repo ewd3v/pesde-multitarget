@@ -6,13 +6,18 @@ local gt = require("../lune_packages/greentea")
 local glob = require("../lune_packages/glob")
 local process = require("@lune/process")
 local darklua = require("../lune_packages/darklua_lune")
+local utils = require("./utils")
+local Result = require("../lune_packages/result")
 
-local ERROR_PREFIX = `{stdio.color("red")}{stdio.style("bold")}error{stdio.color("reset")}:`
 local DEFAULT_DARKLUA_RULES = {
 	"remove_unused_if_branch",
 	"filter_after_early_return",
 	"remove_empty_do",
 }
+local DEFAULT_PESDE_TOML_DIR = "pesde.toml"
+local DEFAULT_OUTPUT_DIR = "dist"
+local DEFAULT_LUA_ENV_GLOBAL = "LUA_ENV"
+local DEFAULT_PKG_ALIAS = "pkg"
 
 type Dependency = {
 	name: string?,
@@ -23,33 +28,84 @@ type Dependency = {
 	path: string?,
 }
 
+--[=[
+	@class multitarget
+	@prop DEFAULT_PESDE_TOML_DIR string
+	@prop DEFAULT_OUTPUT_DIR string
+	@prop DEFAULT_LUA_ENV_GLOBAL string
+	@prop DEFAULT_PKG_ALIAS string
+
+	# pesde-multitarget
+	Build your pure pesde project easier targeting both `luau` and `roblox` targets at the same time
+
+	No more annoying package build scripts manually! (But this doesn't support `wally`)
+]=]
 local multitarget = {}
 
 local targetsType = gt.build(gt.table({
 	luau = gt.opt(gt.boolean()),
 	lune = gt.opt(gt.boolean()),
 	roblox = gt.opt(gt.boolean()),
+}, {
+	min = 1,
+	max = 3,
 }))
 local environmentType = gt.build(gt.union(gt.literal("luau"), gt.literal("lune"), gt.literal("roblox")))
 local optionalStringType = gt.build(gt.opt(gt.string()))
 local optionalStringArrayType = gt.build(gt.opt(gt.array(gt.string())))
-local optionalBooleanType = gt.build(gt.opt(gt.boolean()))
+local optionalAsPathType = gt.build(gt.opt(pathfs.types.AsPath:type()))
 
+--[=[
+	@within multitarget
+	@param pesdeTomlPath string? -- Path to the `pesde.toml` file. Default is `pesde.toml`.
+	@param targets { luau: boolean?, lune: boolean?, roblox: boolean? } -- Targets to build
+	@param outputPath string? -- Output directory. Default is `dist`.
+	@param buildFiles { string }? -- Paths to build files
+	@param luaEnvGlobal string? -- Lua environment global variable name. Default is `LUA_ENV`.
+	@param pkgAlias string? -- Package alias name. Default is `pkg`.
+
+	Builds a pesde project for multiple targets
+
+	```lua
+	local result = multitarget.build("pesde.toml", {
+		luau = true,
+		lune = true,
+		roblox = true,
+	}, "dist", { "build.lua" }, "LUA_ENV", "pkg")
+
+	if result:isOk() then
+		print("Built successfully!")
+	else
+		print("Error:", result:unwrapErr().message)
+	end
+	```
+]=]
 function multitarget.build(
-	pesdeTomlPath: typeof(pathfs.types.AsPath:type()),
-	outputPath: typeof(pathfs.types.AsPath:type()),
+	pesdeTomlPath: typeof(optionalAsPathType:type()),
 	targets: typeof(targetsType:type()),
+	outputPath: typeof(optionalAsPathType:type()),
 	buildFiles: typeof(optionalStringArrayType:type()),
 	luaEnvGlobal: typeof(optionalStringType:type()),
-	workspace: typeof(optionalBooleanType:type())
-)
+	pkgAlias: typeof(optionalStringType:type())
+): Result.Result<pathfs.Directory, {
+	message: string,
+	outputDir: pathfs.Directory,
+}>
 	pathfs.types.AsPath:assert(pesdeTomlPath)
 	pathfs.types.AsPath:assert(outputPath)
 	targetsType:assert(targets)
 	optionalStringArrayType:assert(buildFiles)
 	optionalStringType:assert(luaEnvGlobal)
-	optionalBooleanType:assert(workspace)
+	optionalStringType:assert(pkgAlias)
 
+	-- selene: allow(shadowing)
+	local pesdeTomlPath = pesdeTomlPath or DEFAULT_PESDE_TOML_DIR
+	-- selene: allow(shadowing)
+	local outputPath = outputPath or DEFAULT_OUTPUT_DIR
+	-- selene: allow(shadowing)
+	local luaEnvGlobal = luaEnvGlobal or DEFAULT_LUA_ENV_GLOBAL
+	-- selene: allow(shadowing)
+	local pkgAlias = pkgAlias or DEFAULT_PKG_ALIAS
 	-- selene: allow(shadowing)
 	local pesdeTomlFile = pathfs.File.fromExisting(pesdeTomlPath)
 	local outputDir = pathfs.Directory.new(outputPath)
@@ -70,9 +126,10 @@ function multitarget.build(
 		serde.decode("toml", pesdeTomlFile:readFile())
 
 	if not pesdeToml.target then
-		stdio.ewrite(`{ERROR_PREFIX} 'target' field is required in 'pesde.toml'.\n`)
-		process.exit(1)
-		error("unreachable")
+		return Result.Err({
+			message = `'target' field is required in 'pesde.toml'.`,
+			outputDir = outputDir,
+		})
 	end
 	-- selene: allow(shadowing)
 	local buildFiles = (pesdeToml.target.build_files or buildFiles) :: typeof(buildFiles)
@@ -110,7 +167,7 @@ function multitarget.build(
 	end
 	if not buildFiles then
 		print(
-			`{stdio.color("yellow")}warn{stdio.color("reset")}: None of build files are specified. The files may not be processed properly.`
+			`{stdio.color("yellow")}warn{stdio.color("reset")}: None of build files are specified. The files may not be processed properly. It is ok to skip if you haven't used '_G.{luaEnvGlobal}' in your build files.`
 		)
 	end
 	for _, target in members do
@@ -151,54 +208,76 @@ function multitarget.build(
 
 		newPesdeToml.private = nil
 
-		if luaEnvGlobal then
-			local injectGlobalValueRule = {
-				rule = "inject_global_value",
-				identifier = luaEnvGlobal,
-				value = target,
-			}
-			if buildFiles then
-				if target == "luau" or target == "lune" then
-					newPesdeToml.target.build_files = nil
-					for _, buildFile in buildFiles do
-						local darkluaOutputPath = targetDir.path:join(buildFile)
+		if #pesdeAddParams > 0 then -- there are dependencies
+			local luaurcFile = pathfs.File.new(targetDir.path:join(".luaurc"))
+			local luaurc: {
+				aliases: { [string]: string? }?,
+			} = if luaurcFile:isFile() then
+				serde.decode("json", luaurcFile:readFile())
+			else
+				{}
+			if luaurc.aliases and luaurc.aliases[pkgAlias] then
+				return Result.Err({
+					message = `'@{pkgAlias}' is already defined in '.luaurc'.`,
+					outputDir = outputDir,
+				})
+			end
+			utils.tableSet(luaurc, { "aliases", pkgAlias }, `./{target}_packages/`)
+			luaurcFile:writeFile(serde.encode("json", luaurc, true))
 
-						local rules = { injectGlobalValueRule :: any }
-						for _, rule in DEFAULT_DARKLUA_RULES do
-							table.insert(rules, rule)
-						end
-						darklua.process(buildFile, darkluaOutputPath:toString(), {
-							rules = rules,
-						})
+			local includes = newPesdeToml.includes or {}
+			if table.find(includes, ".luaurc") == nil then
+				table.insert(includes, ".luaurc")
+			end
+			newPesdeToml.includes = includes
+		end
+
+		local injectGlobalValueRule = {
+			rule = "inject_global_value",
+			identifier = luaEnvGlobal,
+			value = target,
+		}
+		if buildFiles then
+			if target == "luau" or target == "lune" then
+				newPesdeToml.target.build_files = nil
+				for _, buildFile in buildFiles do
+					local darkluaOutputPath = targetDir.path:join(buildFile)
+
+					local rules = { injectGlobalValueRule :: any }
+					for _, rule in DEFAULT_DARKLUA_RULES do
+						table.insert(rules, rule)
 					end
-				elseif target == "roblox" then
-					newPesdeToml.target.build_files = buildFiles
-					newPesdeToml.target.bin = nil
-					newPesdeToml.target.scripts = nil
-					for _, buildFile in buildFiles do
-						local darkluaOutputPath = targetDir.path:join(buildFile)
+					darklua.process(buildFile, darkluaOutputPath:toString(), {
+						rules = rules,
+					})
+				end
+			elseif target == "roblox" then
+				newPesdeToml.target.build_files = buildFiles
+				newPesdeToml.target.bin = nil
+				newPesdeToml.target.scripts = nil
+				for _, buildFile in buildFiles do
+					local darkluaOutputPath = targetDir.path:join(buildFile)
 
-						local rules = {
-							injectGlobalValueRule :: any,
-							{
-								rule = "convert_require",
-								current = {
-									name = "path",
-								},
-								target = {
-									name = "roblox",
-									indexing_style = "property",
-									rojo_sourcemap = if fs.isFile("sourcemap.json") then "sourcemap.json" else nil,
-								},
+					local rules = {
+						injectGlobalValueRule :: any,
+						{
+							rule = "convert_require",
+							current = {
+								name = "path",
 							},
-						}
-						for _, rule in DEFAULT_DARKLUA_RULES do
-							table.insert(rules, rule)
-						end
-						darklua.process(buildFile, darkluaOutputPath:toString(), {
-							rules = rules,
-						})
+							target = {
+								name = "roblox",
+								indexing_style = "property",
+								rojo_sourcemap = if fs.isFile("sourcemap.json") then "sourcemap.json" else nil,
+							},
+						},
+					}
+					for _, rule in DEFAULT_DARKLUA_RULES do
+						table.insert(rules, rule)
 					end
+					darklua.process(buildFile, darkluaOutputPath:toString(), {
+						rules = rules,
+					})
 				end
 			end
 		end
@@ -228,25 +307,29 @@ function multitarget.build(
 				})
 			end
 			if not result.ok then
-				stdio.ewrite(
-					`{ERROR_PREFIX} Failed to add dependency '{table.concat(pesdeAddParam, " ")}' to '{target}' target.\n`
-				)
-				process.exit(1)
-				error("unreachable")
+				return Result.Err({
+					message = `Failed to add dependency '{table.concat(pesdeAddParam, " ")}' to '{target}' target.`,
+					outputDir = outputDir,
+				})
 			end
 		end
 	end
 
-	if workspace then
-		local workspacePesdeToml = {
-			name = "multitarget/root",
-			version = "0.0.0",
-			private = true,
-			workspace_members = members,
-			target = { environment = "luau" },
-		}
-		fs.writeFile(outputDir.path:join("pesde.toml"), serde.encode("toml", workspacePesdeToml, true))
-	end
+	local workspacePesdeToml = {
+		name = "multitarget/root",
+		version = "0.0.0",
+		private = true,
+		workspace_members = members,
+		target = { environment = "luau" },
+	}
+	fs.writeFile(outputDir.path:join("pesde.toml"), serde.encode("toml", workspacePesdeToml, true))
+
+	return Result.Ok(outputDir)
 end
+
+multitarget.DEFAULT_PESDE_TOML_DIR = DEFAULT_PESDE_TOML_DIR
+multitarget.DEFAULT_OUTPUT_DIR = DEFAULT_OUTPUT_DIR
+multitarget.DEFAULT_LUA_ENV_GLOBAL = DEFAULT_LUA_ENV_GLOBAL
+multitarget.DEFAULT_PKG_ALIAS = DEFAULT_PKG_ALIAS
 
 return multitarget

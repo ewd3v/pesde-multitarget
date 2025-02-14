@@ -4,10 +4,13 @@ local pathfs = require("../lune_packages/pathfs")
 local stdio = require("@lune/stdio")
 local serde = require("@lune/serde")
 local process = require("@lune/process")
+local utils = require("./utils")
 
+local DEFAULT_OUTPUT_DIR = multitarget.DEFAULT_OUTPUT_DIR
+local DEFAULT_LUA_ENV_GLOBAL = multitarget.DEFAULT_LUA_ENV_GLOBAL
+local DEFAULT_PKG_ALIAS = multitarget.DEFAULT_PKG_ALIAS
 local ERROR_PREFIX = `{stdio.color("red")}{stdio.style("bold")}error{stdio.color("reset")}:`
-local DEFAULT_OUTPUT_DIR = "dist"
-local DEFAULT_LUA_ENV_GLOBAL = "LUA_ENV"
+local WARN_PREFIX = `{stdio.color("yellow")}{stdio.style("bold")}warn{stdio.color("reset")}:`
 local DEFAULT_DECLARATION_FILE_CONTENT = `declare _G: \{\
 	{DEFAULT_LUA_ENV_GLOBAL}: ("luau" | "lune" | "roblox")?,\
 \}\
@@ -24,7 +27,6 @@ local build = cli:command("build", "Build a pesde project for multiple targets")
 build:argument("project", "Path to the pesde.toml file"):default("pesde.toml")
 build:option("-o --output", "Output directory"):default(DEFAULT_OUTPUT_DIR)
 build:option("-g --global", "Lua environment global variable name"):default(DEFAULT_LUA_ENV_GLOBAL)
-build:flag("-w --workspace", "Build as pesde workspace")
 build:flag("--luau", "Build for Luau")
 build:flag("--lune", "Build for Lune")
 build:flag("--roblox", "Build for Roblox")
@@ -34,7 +36,6 @@ build:action(function(args: {
 	project: string,
 	output: string,
 	global: string,
-	workspace: boolean,
 	luau: boolean,
 	lune: boolean,
 	roblox: boolean,
@@ -52,7 +53,23 @@ build:action(function(args: {
 		lune = args.lune,
 		roblox = args.roblox,
 	}
-	multitarget.build(args.project, output, targets, args.build_files, args.global, args.workspace)
+	local result = multitarget.build(
+		args.project,
+		targets,
+		output,
+		args.build_files,
+		args.global
+	)
+	if result:isErr() then
+		local err = result:unwrapErr()
+
+		print(`{WARN_PREFIX} Error occurred while building the project. Deleting the output directory...`)
+		err.outputDir:removeDir()
+
+		stdio.ewrite(`{ERROR_PREFIX} {err.message}\n`)
+		process.exit(1)
+		error("unreachable")
+	end
 
 	local colorfulTargets = {}
 	for target: string, enabled: boolean in targets :: any do
@@ -62,18 +79,6 @@ build:action(function(args: {
 	end
 	print(`\n{stdio.color("green")}Build completed!{stdio.color("reset")} {table.concat(colorfulTargets, ",")}`)
 end)
-
-local function tableSet(t: {}, path: { any }, value: any)
-	local current = t
-	for i = 1, #path - 1 do
-		local key = path[i]
-		if not current[key] then
-			current[key] = {}
-		end
-		current = current[key]
-	end
-	current[path[#path]] = value
-end
 
 local function tableGet(t: {}, path: { any }): any?
 	local current = t
@@ -98,11 +103,47 @@ setup:action(function()
 		end
 		local pesdeManifest: {
 			private: boolean?,
+			dependencies: { [string]: any }?,
+			peer_dependencies: { [string]: any }?,
+			target: {
+				environment: ("luau" | "lune" | "roblox")?,
+			}?,
 		} = serde.decode("toml", pesdeToml:readFile())
 		if not pesdeManifest.private then
 			print(
-				`{stdio.color("yellow")}warn{stdio.color("reset")}: It is recommended to set 'private = true' in 'pesde.toml' to prevent accidental publishing the root project.\n`
+				`{WARN_PREFIX} It is recommended to set 'private = true' in pesde.toml to prevent accidental publishing the root project.`
 			)
+		end
+		local luaurcFile = pathfs.File.new(".luaurc")
+		local luaurc: {
+			aliases: { [string]: string? }?,
+		} = if luaurcFile:isFile() then
+			serde.decode("json", luaurcFile:readFile())
+		else
+			{}
+		if not pesdeManifest.target or not pesdeManifest.target.environment then
+			stdio.ewrite(`{ERROR_PREFIX} 'target.environment' is not found in pesde.toml\n`)
+			process.exit(1)
+			error("unreachable")
+		end
+		local pkgPath = `./{pesdeManifest.target.environment}_packages/`
+		local pkgAlias = luaurc.aliases and luaurc.aliases[DEFAULT_PKG_ALIAS]
+		local hasDependencies = ((pesdeManifest.dependencies and next(pesdeManifest.dependencies))
+			or (pesdeManifest.peer_dependencies and next(pesdeManifest.peer_dependencies)))
+		local isPkgAliasInvalid = if pkgAlias then
+			pkgAlias == pkgPath
+		else
+			false
+		if (not pkgAlias and hasDependencies) or isPkgAliasInvalid then
+			if isPkgAliasInvalid then
+				print(
+					`{WARN_PREFIX} @{DEFAULT_PKG_ALIAS} alias already used. This will be replaced with './\{target\}_packages/' for each target's dependencies when you build the project.`
+				)
+			end
+			if stdio.prompt("confirm", "Found dependencies in pesde.toml. Would you like to add @{DEFAULT_PKG_ALIAS} alias in .luaurc for each target's dependencies?") then
+				utils.tableSet(luaurc, { "aliases", DEFAULT_PKG_ALIAS }, pkgPath)
+				luaurcFile:writeFile(serde.encode("json", luaurc, true))
+			end
 		end
 	end
 	do
@@ -150,7 +191,7 @@ setup:action(function()
 						`Found a selene.toml file. Would you like to add the default lua environment global variable name('{DEFAULT_LUA_ENV_GLOBAL}') to the ignore pattern?`
 					)
 				then
-					tableSet(seleneToml, path, DEFAULT_LUA_ENV_GLOBAL)
+					utils.tableSet(seleneToml, path, DEFAULT_LUA_ENV_GLOBAL)
 					seleneFile:writeFile(serde.encode("toml", seleneToml, true))
 				end
 			end
