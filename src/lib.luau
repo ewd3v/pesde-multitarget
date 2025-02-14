@@ -218,12 +218,6 @@ function multitarget.build(
 				serde.decode("json", luaurcFile:readFile())
 			else
 				{}
-			if luaurc.aliases and luaurc.aliases[pkgAlias] then
-				return Result.Err({
-					message = `'@{pkgAlias}' is already defined in '.luaurc'.`,
-					outputDir = outputDir,
-				})
-			end
 			utils.tableSet(luaurc, { "aliases", pkgAlias }, `./{target}_packages/`)
 			luaurcFile:writeFile(serde.encode("json", luaurc, true))
 
