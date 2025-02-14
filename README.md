@@ -1,5 +1,7 @@
-# pesde-multitarget
-Build your pure pesde project easier targeting both `luau` and `roblox` targets at the same time
+# [pesde-multitarget](https://pesde.dev/packages/jiwonz/multitarget)
+Customizable and flexible build script for multiple pesde targets
+
+Build your pure pesde project easier targeting both `luau` and `roblox` targets at the same time.
 
 No more annoying package build scripts manually! (But this doesn't support `wally`)
 
@@ -24,17 +26,17 @@ Use a library with pesde scripts(runtime is lune actually):
 local multitarget = require("../lune_packages/multitarget")
 
 multitarget.build(
-	"pesde.toml",
-	"./path/to/output",
+	"pesde.toml", -- defaults to "pesde.toml"
 	{ -- pesde project file path defaults to "pesde.toml"
 		luau = true,
 		roblox = true,
 	},
+	"./path/to/output", -- defaults to "dist"
 	{
 		"build files path" -- files/directories to be built
 	},
-	"LUA_ENV",
-	true -- if this is true, it will create a pesde workspace project in dist folder (this is helpful when publish them at the same time faster)
+	"LUA_ENV", -- defaults to "LUA_ENV"
+	"pkg" -- defaults to "pkg"
 )
 ```
 `pesde.toml`

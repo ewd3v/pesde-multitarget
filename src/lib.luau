@@ -35,8 +35,10 @@ type Dependency = {
 	@prop DEFAULT_LUA_ENV_GLOBAL string
 	@prop DEFAULT_PKG_ALIAS string
 
-	# pesde-multitarget
-	Build your pure pesde project easier targeting both `luau` and `roblox` targets at the same time
+	# [pesde-multitarget](https://pesde.dev/packages/jiwonz/multitarget)
+	Customizable and flexible build script for multiple pesde targets
+
+	Build your pure pesde project easier targeting both `luau` and `roblox` targets at the same time.
 
 	No more annoying package build scripts manually! (But this doesn't support `wally`)
 ]=]

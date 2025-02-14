@@ -27,6 +27,7 @@ local build = cli:command("build", "Build a pesde project for multiple targets")
 build:argument("project", "Path to the pesde.toml file"):default("pesde.toml")
 build:option("-o --output", "Output directory"):default(DEFAULT_OUTPUT_DIR)
 build:option("-g --global", "Lua environment global variable name"):default(DEFAULT_LUA_ENV_GLOBAL)
+build:option("-p --pkg", "Package alias name"):default(DEFAULT_PKG_ALIAS)
 build:flag("--luau", "Build for Luau")
 build:flag("--lune", "Build for Lune")
 build:flag("--roblox", "Build for Roblox")
@@ -36,6 +37,7 @@ build:action(function(args: {
 	project: string,
 	output: string,
 	global: string,
+	pkg: string,
 	luau: boolean,
 	lune: boolean,
 	roblox: boolean,
@@ -58,7 +60,8 @@ build:action(function(args: {
 		targets,
 		output,
 		args.build_files,
-		args.global
+		args.global,
+		args.pkg
 	)
 	if result:isErr() then
 		local err = result:unwrapErr()
