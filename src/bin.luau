@@ -134,7 +134,7 @@ setup:action(function()
 		local hasDependencies = ((pesdeManifest.dependencies and next(pesdeManifest.dependencies))
 			or (pesdeManifest.peer_dependencies and next(pesdeManifest.peer_dependencies)))
 		local isPkgAliasInvalid = if pkgAlias then
-			pkgAlias == pkgPath
+			pkgAlias ~= pkgPath
 		else
 			false
 		if (not pkgAlias and hasDependencies) or isPkgAliasInvalid then
