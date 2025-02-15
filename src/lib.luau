@@ -286,6 +286,7 @@ function multitarget.build(
 								sources = if luaurc then -- remove this after darklua 0.16.0
 									luaurc.aliases
 								else nil,
+								use_luau_configuration = false,
 							},
 							target = {
 								name = "roblox",
