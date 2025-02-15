@@ -81,7 +81,7 @@ build:action(function(args: {
 			table.insert(colorfulTargets, TARGETS_COLORS[target] .. target .. stdio.color("reset"))
 		end
 	end
-	print(`\n{stdio.color("green")}Build completed!{stdio.color("reset")} {table.concat(colorfulTargets, ",")}`)
+	print(`\n{stdio.color("green")}Build completed!{stdio.color("reset")} {table.concat(colorfulTargets, ", ")}\nTo publish them, run 'cd {output} && pesde publish'`)
 end)
 
 local function tableGet(t: {}, path: { any }): any?
