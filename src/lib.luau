@@ -264,8 +264,9 @@ function multitarget.build(
 				end
 
 				for _, buildFile in buildFiles do
-					local luaurc = if fs.isFile(".luaurc") then
-						serde.decode("json", fs.readFile(".luaurc")) :: {
+					local luaurcFile = pathfs.File.new(targetDir.path:join(".luaurc"))
+					local luaurc = if luaurcFile:isFile() then
+						serde.decode("json", luaurcFile:readFile()) :: {
 							aliases: { [string]: string },
 						}
 					else nil
