@@ -1,5 +1,5 @@
 name = "jiwonz/multitarget"
-version = "0.4.0-rc.17"
+version = "0.4.0-rc.18"
 description = "Customizable and flexible build script for multiple pesde targets"
 authors = ["jiwonz <me@jiwonz.kr>"]
 repository = "https://github.com/jiwonz/pesde-multitarget"

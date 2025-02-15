@@ -264,6 +264,32 @@ function multitarget.build(
 		newPesdeToml.dependencies = nil
 		fs.writeFile(targetDir.path:join("pesde.toml"), serde.encode("toml", newPesdeToml, true))
 
+		for _, pesdeAddParam in pesdeAddParams do
+			local params = { "add" }
+			for _, param in pesdeAddParam do
+				table.insert(params, param)
+			end
+			table.insert(params, "--target")
+			table.insert(params, target)
+			local result = process.spawn("pesde", params, {
+				cwd = targetDir.path:toString(),
+				stdio = "inherit",
+			})
+			if not result.ok and target == "lune" then
+				params[#params] = "luau"
+				result = process.spawn("pesde", params, {
+					cwd = targetDir.path:toString(),
+					stdio = "inherit",
+				})
+			end
+			if not result.ok then
+				return Result.Err({
+					message = `Failed to add dependency '{table.concat(pesdeAddParam, " ")}' to '{target}' target.`,
+					outputDir = outputDir,
+				})
+			end
+		end
+
 		local injectGlobalValueRule = {
 			rule = "inject_global_value",
 			identifier = luaEnvGlobal,
@@ -337,32 +363,6 @@ function multitarget.build(
 						stdio = "inherit",
 					})
 				end
-			end
-		end
-
-		for _, pesdeAddParam in pesdeAddParams do
-			local params = { "add" }
-			for _, param in pesdeAddParam do
-				table.insert(params, param)
-			end
-			table.insert(params, "--target")
-			table.insert(params, target)
-			local result = process.spawn("pesde", params, {
-				cwd = targetDir.path:toString(),
-				stdio = "inherit",
-			})
-			if not result.ok and target == "lune" then
-				params[#params] = "luau"
-				result = process.spawn("pesde", params, {
-					cwd = targetDir.path:toString(),
-					stdio = "inherit",
-				})
-			end
-			if not result.ok then
-				return Result.Err({
-					message = `Failed to add dependency '{table.concat(pesdeAddParam, " ")}' to '{target}' target.`,
-					outputDir = outputDir,
-				})
 			end
 		end
 	end
