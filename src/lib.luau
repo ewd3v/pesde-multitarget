@@ -91,7 +91,7 @@ function multitarget.build(
 	pkgAlias: typeof(optionalStringType:type())
 ): Result.Result<pathfs.Directory, {
 	message: string,
-	outputDir: pathfs.Directory,
+	outputDir: pathfs.Directory?,
 }>
 	pathfs.types.AsPath:assert(pesdeTomlPath)
 	pathfs.types.AsPath:assert(outputPath)
@@ -110,7 +110,15 @@ function multitarget.build(
 	local pkgAlias = pkgAlias or DEFAULT_PKG_ALIAS
 	-- selene: allow(shadowing)
 	local pesdeTomlFile = pathfs.File.fromExisting(pesdeTomlPath)
-	local outputDir = pathfs.Directory.new(outputPath)
+	local outputDir = pathfs.findDirectory(outputPath)
+	if outputDir then
+		return Result.Err({
+			message = `Output directory '{outputDir.path}' already exists.`,
+		})
+	end
+	-- selene: allow(shadowing)
+	local outputDir = pathfs.Directory.create(outputPath)
+
 	local pesdeToml: {
 		includes: { string }?,
 		target: {

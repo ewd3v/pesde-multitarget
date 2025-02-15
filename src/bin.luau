@@ -61,8 +61,10 @@ build:action(function(args: {
 	if result:isErr() then
 		local err = result:unwrapErr()
 
-		print(`{WARN_PREFIX} Error occurred while building the project. Deleting the output directory...`)
-		err.outputDir:removeDir()
+		if err.outputDir then -- rollback!
+			print(`{WARN_PREFIX} Error occurred while building the project. Deleting the output directory...`)
+			err.outputDir:removeDir()
+		end
 
 		stdio.ewrite(`{ERROR_PREFIX} {err.message}\n`)
 		process.exit(1)
