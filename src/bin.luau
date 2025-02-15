@@ -5,6 +5,7 @@ local stdio = require("@lune/stdio")
 local serde = require("@lune/serde")
 local process = require("@lune/process")
 local utils = require("./utils")
+local chalk = require("../luau_packages/chalk_luau")
 
 local DEFAULT_OUTPUT_DIR = multitarget.DEFAULT_OUTPUT_DIR
 local DEFAULT_LUA_ENV_GLOBAL = multitarget.DEFAULT_LUA_ENV_GLOBAL
@@ -15,10 +16,10 @@ local DEFAULT_DECLARATION_FILE_CONTENT = `declare _G: \{\
 	{DEFAULT_LUA_ENV_GLOBAL}: ("luau" | "lune" | "roblox")?,\
 \}\
 `
-local TARGETS_COLORS = {
-	luau = stdio.color("blue"),
-	lune = stdio.color("purple"),
-	roblox = stdio.color("red"),
+local COLORFUL_TARGETS = {
+	luau = chalk.bgBlue(chalk.bold("Luau")),
+	lune = chalk.bgMagenta(chalk.bold("Lune")),
+	roblox = chalk.red(chalk.bold("ROBLOX")),
 }
 
 local CLI_NAME = "multitarget"
@@ -78,7 +79,7 @@ build:action(function(args: {
 	local colorfulTargets = {}
 	for target: string, enabled: boolean in targets :: any do
 		if enabled then
-			table.insert(colorfulTargets, TARGETS_COLORS[target] .. target .. stdio.color("reset"))
+			table.insert(colorfulTargets, COLORFUL_TARGETS[target])
 		end
 	end
 	print(`\n{stdio.color("green")}Build completed!{stdio.color("reset")} {table.concat(colorfulTargets, ", ")}\nTo publish them, run 'cd {output} && pesde publish'`)

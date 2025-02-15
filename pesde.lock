@@ -1,5 +1,5 @@
 name = "jiwonz/multitarget"
-version = "0.4.0-rc.5"
+version = "0.4.0-rc.6"
 target = "lune"
 
 [graph."0x5eal/unzip@0.1.0 luau"]
@@ -223,6 +223,14 @@ luau_lsp = [{ name = "pesde/luau_lsp", version = "^1.38.1", index = "https://git
 pathfs = [{ name = "jiwonz/pathfs", version = "^0.5.2", index = "https://github.com/pesde-pkg/index" }, "standard"]
 selene = [{ name = "pesde/selene", version = "^0.28.0", index = "https://github.com/pesde-pkg/index" }, "dev"]
 stylua = [{ name = "pesde/stylua", version = "^2.0.2", index = "https://github.com/pesde-pkg/index" }, "dev"]
+
+[graph."kimpure/chalk_luau@0.1.2 luau"]
+direct = ["chalk_luau", { name = "kimpure/chalk_luau", version = "^0.1.2", index = "default", target = "luau" }, "standard"]
+resolved_ty = "standard"
+
+[graph."kimpure/chalk_luau@0.1.2 luau".pkg_ref]
+ref_ty = "pesde"
+index_url = "https://github.com/pesde-pkg/index"
 
 [graph."kimpure/globrex_lune@0.2.4 lune"]
 resolved_ty = "standard"
