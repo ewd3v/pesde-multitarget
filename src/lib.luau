@@ -247,6 +247,12 @@ function multitarget.build(
 					})
 				end
 			elseif target == "roblox" then
+				local luaurcFile = pathfs.File.new(targetDir.path:join(".luaurc"))
+				local luaurc = if luaurcFile:isFile()
+					then serde.decode("json", luaurcFile:readFile()) :: {
+						aliases: { [string]: string },
+					}
+					else nil
 				newPesdeToml.target.build_files = buildFiles
 				newPesdeToml.target.bin = nil
 				newPesdeToml.target.scripts = nil
@@ -259,6 +265,7 @@ function multitarget.build(
 							rule = "convert_require",
 							current = {
 								name = "path",
+								sources = if luaurc then luaurc.aliases else nil,
 							},
 							target = {
 								name = "roblox",
