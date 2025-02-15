@@ -4,8 +4,8 @@ local pathfs = require("../lune_packages/pathfs")
 local stdio = require("@lune/stdio")
 local serde = require("@lune/serde")
 local process = require("@lune/process")
-local utils = require("./utils")
 local chalk = require("../luau_packages/chalk_luau")
+local tableHelper = require("../luau_packages/table_helper")
 
 local DEFAULT_OUTPUT_DIR = multitarget.DEFAULT_OUTPUT_DIR
 local DEFAULT_LUA_ENV_GLOBAL = multitarget.DEFAULT_LUA_ENV_GLOBAL
@@ -57,14 +57,7 @@ build:action(function(args: {
 		lune = args.lune,
 		roblox = args.roblox,
 	}
-	local result = multitarget.build(
-		args.project,
-		targets,
-		output,
-		args.build_files,
-		args.global,
-		args.pkg
-	)
+	local result = multitarget.build(args.project, targets, output, args.build_files, args.global, args.pkg)
 	if result:isErr() then
 		local err = result:unwrapErr()
 
@@ -82,7 +75,9 @@ build:action(function(args: {
 			table.insert(colorfulTargets, COLORFUL_TARGETS[target])
 		end
 	end
-	print(`\n{stdio.color("green")}Build completed!{stdio.color("reset")} for {table.concat(colorfulTargets, " & ")}\nTo publish them, run 'cd {output} && pesde publish'`)
+	print(
+		`\n{stdio.color("green")}Build completed!{stdio.color("reset")} {table.concat(colorfulTargets, ", ")}\nTo publish them, run 'cd {output} && pesde publish'`
+	)
 end)
 
 local function tableGet(t: {}, path: { any }): any?
@@ -113,7 +108,8 @@ setup:action(function()
 			target: {
 				environment: ("luau" | "lune" | "roblox")?,
 			}?,
-		} = serde.decode("toml", pesdeToml:readFile())
+		} =
+			serde.decode("toml", pesdeToml:readFile())
 		if not pesdeManifest.private then
 			print(
 				`{WARN_PREFIX} It is recommended to set 'private = true' in pesde.toml to prevent accidental publishing the root project.`
@@ -122,10 +118,9 @@ setup:action(function()
 		local luaurcFile = pathfs.File.new(".luaurc")
 		local luaurc: {
 			aliases: { [string]: string? }?,
-		} = if luaurcFile:isFile() then
-			serde.decode("json", luaurcFile:readFile())
-		else
-			{}
+		} = if luaurcFile:isFile()
+			then serde.decode("json", luaurcFile:readFile())
+			else {}
 		if not pesdeManifest.target or not pesdeManifest.target.environment then
 			stdio.ewrite(`{ERROR_PREFIX} 'target.environment' is not found in pesde.toml\n`)
 			process.exit(1)
@@ -133,20 +128,24 @@ setup:action(function()
 		end
 		local pkgPath = `./{pesdeManifest.target.environment}_packages/`
 		local pkgAlias = luaurc.aliases and luaurc.aliases[DEFAULT_PKG_ALIAS]
-		local hasDependencies = ((pesdeManifest.dependencies and next(pesdeManifest.dependencies))
-			or (pesdeManifest.peer_dependencies and next(pesdeManifest.peer_dependencies)))
-		local isPkgAliasInvalid = if pkgAlias then
-			pkgAlias ~= pkgPath
-		else
-			false
+		local hasDependencies = (
+			(pesdeManifest.dependencies and next(pesdeManifest.dependencies))
+			or (pesdeManifest.peer_dependencies and next(pesdeManifest.peer_dependencies))
+		)
+		local isPkgAliasInvalid = if pkgAlias then pkgAlias ~= pkgPath else false
 		if (not pkgAlias and hasDependencies) or isPkgAliasInvalid then
 			if isPkgAliasInvalid then
 				print(
 					`{WARN_PREFIX} @{DEFAULT_PKG_ALIAS} alias already used. This will be replaced with './\{target\}_packages/' for each target's dependencies when you build the project.`
 				)
 			end
-			if stdio.prompt("confirm", "Found dependencies in pesde.toml. Would you like to add @{DEFAULT_PKG_ALIAS} alias in .luaurc for each target's dependencies?") then
-				utils.tableSet(luaurc, { "aliases", DEFAULT_PKG_ALIAS }, pkgPath)
+			if
+				stdio.prompt(
+					"confirm",
+					"Found dependencies in pesde.toml. Would you like to add @{DEFAULT_PKG_ALIAS} alias in .luaurc for each target's dependencies?"
+				)
+			then
+				tableHelper.set(luaurc, { "aliases", DEFAULT_PKG_ALIAS }, pkgPath)
 				luaurcFile:writeFile(serde.encode("json", luaurc, true))
 			end
 		end
@@ -196,7 +195,7 @@ setup:action(function()
 						`Found a selene.toml file. Would you like to add the default lua environment global variable name('{DEFAULT_LUA_ENV_GLOBAL}') to the ignore pattern?`
 					)
 				then
-					utils.tableSet(seleneToml, path, DEFAULT_LUA_ENV_GLOBAL)
+					tableHelper.set(seleneToml, path, DEFAULT_LUA_ENV_GLOBAL)
 					seleneFile:writeFile(serde.encode("toml", seleneToml, true))
 				end
 			end
@@ -258,9 +257,7 @@ end)
 
 local version = cli:command("version", "Show the version of multitarget")
 version:action(function()
-	local multitargetPesdeToml = pathfs.File.fromExisting(
-		pathfs.Path.from(_G.PESDE_ROOT):join("pesde.toml")
-	)
+	local multitargetPesdeToml = pathfs.File.fromExisting(pathfs.Path.from(_G.PESDE_ROOT):join("pesde.toml"))
 	local pesdeManifest: {
 		version: string,
 	} = serde.decode("toml", multitargetPesdeToml:readFile())

@@ -6,8 +6,8 @@ local gt = require("../lune_packages/greentea")
 local glob = require("../lune_packages/glob")
 local process = require("@lune/process")
 local darklua = require("../lune_packages/darklua_lune")
-local utils = require("./utils")
 local Result = require("../lune_packages/result")
+local tableHelper = require("../luau_packages/table_helper")
 
 local DEFAULT_DARKLUA_RULES = {
 	"remove_unused_if_branch",
@@ -177,7 +177,7 @@ function multitarget.build(
 
 		local targetDir = pathfs.Directory.new(outputDir.path:join(target))
 		-- selene: allow(shadowing)
-		local newPesdeToml = table.clone(pesdeToml)
+		local newPesdeToml = tableHelper.copy(pesdeToml, true)
 		if newPesdeToml.includes then
 			for _, include in newPesdeToml.includes do
 				for _, path in glob(include) do
@@ -214,11 +214,10 @@ function multitarget.build(
 			local luaurcFile = pathfs.File.new(targetDir.path:join(".luaurc"))
 			local luaurc: {
 				aliases: { [string]: string? }?,
-			} = if luaurcFile:isFile() then
-				serde.decode("json", luaurcFile:readFile())
-			else
-				{}
-			utils.tableSet(luaurc, { "aliases", pkgAlias }, `./{target}_packages/`)
+			} = if luaurcFile:isFile()
+				then serde.decode("json", luaurcFile:readFile())
+				else {}
+			tableHelper.set(luaurc, { "aliases", pkgAlias }, `./{target}_packages/`)
 			luaurcFile:writeFile(serde.encode("json", luaurc, true))
 
 			local includes = newPesdeToml.includes or {}
