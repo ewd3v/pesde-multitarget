@@ -1,5 +1,5 @@
 name = "jiwonz/multitarget"
-version = "0.4.0-rc.3"
+version = "0.4.0-rc.4"
 target = "lune"
 
 [graph."0x5eal/unzip@0.1.0 luau"]
@@ -16,7 +16,7 @@ luau-lsp = [{ name = "pesde/luau_lsp", version = "^1.38.0", index = "https://git
 stylua = [{ name = "pesde/stylua", version = "^2.0.2", index = "https://github.com/pesde-pkg/index", target = "lune" }, "dev"]
 
 [graph."caveful_games/argparse@0.1.2 lune"]
-direct = ["argparse", { name = "caveful_games/argparse", version = "^0.1.2" }, "standard"]
+direct = ["argparse", { name = "caveful_games/argparse", version = "^0.1.2", index = "default" }, "standard"]
 resolved_ty = "standard"
 
 [graph."caveful_games/argparse@0.1.2 lune".pkg_ref]
@@ -30,7 +30,7 @@ selene = [{ name = "pesde/selene", version = "^0.27.1", index = "https://github.
 stylua = [{ name = "pesde/stylua", version = "^2.0.2", index = "https://github.com/pesde-pkg/index" }, "dev"]
 
 [graph."corecii/greentea@0.4.11 lune"]
-direct = ["greentea", { name = "corecii/greentea", version = "^0.4.11" }, "standard"]
+direct = ["greentea", { name = "corecii/greentea", version = "^0.4.11", index = "default" }, "standard"]
 resolved_ty = "standard"
 
 [graph."corecii/greentea@0.4.11 lune".pkg_ref]
@@ -38,7 +38,7 @@ ref_ty = "pesde"
 index_url = "https://github.com/pesde-pkg/index"
 
 [graph."jiwonz/darklua_lune@0.1.3 lune"]
-direct = ["darklua_lune", { name = "jiwonz/darklua_lune", version = "^0.1.3" }, "standard"]
+direct = ["darklua_lune", { name = "jiwonz/darklua_lune", version = "^0.1.3", index = "default" }, "standard"]
 resolved_ty = "standard"
 
 [graph."jiwonz/darklua_lune@0.1.3 lune".dependencies]
@@ -62,7 +62,7 @@ resolved_ty = "standard"
 
 [graph."jiwonz/dirs@0.3.0 lune".dependencies]
 "corecii/greentea@0.4.11 lune" = "greentea"
-"jiwonz/pathfs@0.3.1 lune" = "pathfs"
+"jiwonz/pathfs@0.3.2 lune" = "pathfs"
 
 [graph."jiwonz/dirs@0.3.0 lune".pkg_ref]
 ref_ty = "pesde"
@@ -76,11 +76,11 @@ selene = [{ name = "pesde/selene", version = "^0.28.0", index = "https://github.
 stylua = [{ name = "pesde/stylua", version = "^2.0.2", index = "https://github.com/daimond113/pesde-index" }, "dev"]
 
 [graph."jiwonz/glob@0.1.0 lune"]
-direct = ["glob", { name = "jiwonz/glob", version = "^0.1.0" }, "standard"]
+direct = ["glob", { name = "jiwonz/glob", version = "^0.1.0", index = "default" }, "standard"]
 resolved_ty = "standard"
 
 [graph."jiwonz/glob@0.1.0 lune".dependencies]
-"jiwonz/pathfs@0.3.1 lune" = "pathfs"
+"jiwonz/pathfs@0.3.2 lune" = "pathfs"
 "kimpure/globrex_lune@0.2.4 lune" = "globrex_lune"
 
 [graph."jiwonz/glob@0.1.0 lune".pkg_ref]
@@ -95,7 +95,7 @@ selene = [{ name = "pesde/selene", version = "^0.27.1", index = "https://github.
 stylua = [{ name = "pesde/stylua", version = "^2.0.2", index = "https://github.com/pesde-pkg/index" }, "dev"]
 
 [graph."jiwonz/luau_check@0.3.8 lune"]
-direct = ["luau_check", { name = "jiwonz/luau_check", version = "^0.3.8" }, "dev"]
+direct = ["luau_check", { name = "jiwonz/luau_check", version = "^0.3.8", index = "default" }, "dev"]
 resolved_ty = "dev"
 
 [graph."jiwonz/luau_check@0.3.8 lune".dependencies]
@@ -150,24 +150,22 @@ luau_lsp = [{ name = "pesde/luau_lsp", version = "^1.38.1", index = "https://git
 selene = [{ name = "pesde/selene", version = "^0.27.1", index = "https://github.com/daimond113/pesde-index", target = "lune" }, "dev"]
 stylua = [{ name = "pesde/stylua", version = "^2.0.2", index = "https://github.com/daimond113/pesde-index", target = "lune" }, "dev"]
 
-[graph."jiwonz/pathfs@0.3.1 lune"]
+[graph."jiwonz/pathfs@0.3.2 lune"]
 resolved_ty = "standard"
 
-[graph."jiwonz/pathfs@0.3.1 lune".dependencies]
+[graph."jiwonz/pathfs@0.3.2 lune".dependencies]
 "corecii/greentea@0.4.11 lune" = "greentea"
 "jiwonz/luau_path@0.1.1 luau" = "luau_path"
 
-[graph."jiwonz/pathfs@0.3.1 lune".pkg_ref]
+[graph."jiwonz/pathfs@0.3.2 lune".pkg_ref]
 ref_ty = "pesde"
 index_url = "https://github.com/pesde-pkg/index"
 
-[graph."jiwonz/pathfs@0.3.1 lune".pkg_ref.dependencies]
+[graph."jiwonz/pathfs@0.3.2 lune".pkg_ref.dependencies]
 frktest = [{ name = "itsfrank/frktest", version = "^0.0.2", index = "https://github.com/daimond113/pesde-index" }, "dev"]
 greentea = [{ name = "corecii/greentea", version = "^0.4.11", index = "https://github.com/daimond113/pesde-index" }, "standard"]
-luau_lsp = [{ name = "pesde/luau_lsp", version = "^1.38.1", index = "https://github.com/daimond113/pesde-index" }, "dev"]
+luau_check = [{ name = "jiwonz/luau_check", version = "^0.3.8", index = "https://github.com/daimond113/pesde-index" }, "dev"]
 luau_path = [{ name = "jiwonz/luau_path", version = "^0.1.1", index = "https://github.com/daimond113/pesde-index", target = "luau" }, "standard"]
-selene = [{ name = "pesde/selene", version = "^0.27.1", index = "https://github.com/daimond113/pesde-index" }, "dev"]
-stylua = [{ name = "pesde/stylua", version = "^2.0.2", index = "https://github.com/daimond113/pesde-index" }, "dev"]
 
 [graph."jiwonz/pathfs@0.5.2 lune"]
 resolved_ty = "standard"
@@ -189,7 +187,7 @@ selene = [{ name = "pesde/selene", version = "^0.28.0", index = "https://github.
 stylua = [{ name = "pesde/stylua", version = "^2.0.2", index = "https://github.com/daimond113/pesde-index" }, "dev"]
 
 [graph."jiwonz/pathfs@0.6.0-rc.1 lune"]
-direct = ["pathfs", { name = "jiwonz/pathfs", version = "^0.6.0-rc.1" }, "standard"]
+direct = ["pathfs", { name = "jiwonz/pathfs", version = "^0.6.0-rc.1", index = "default" }, "standard"]
 resolved_ty = "standard"
 
 [graph."jiwonz/pathfs@0.6.0-rc.1 lune".dependencies]
@@ -251,7 +249,7 @@ ref_ty = "pesde"
 index_url = "https://github.com/pesde-pkg/index"
 
 [graph."lukadev_0/result@1.2.0 lune"]
-direct = ["result", { name = "lukadev_0/result", version = "^1.2.0" }, "standard"]
+direct = ["result", { name = "lukadev_0/result", version = "^1.2.0", index = "default" }, "standard"]
 resolved_ty = "standard"
 
 [graph."lukadev_0/result@1.2.0 lune".pkg_ref]
@@ -259,7 +257,7 @@ ref_ty = "pesde"
 index_url = "https://github.com/pesde-pkg/index"
 
 [graph."pesde/darklua@0.16.0 lune"]
-direct = ["darklua", { name = "pesde/darklua", version = "^0.16.0" }, "peer"]
+direct = ["darklua", { name = "pesde/darklua", version = "^0.16.0", index = "default" }, "peer"]
 resolved_ty = "standard"
 
 [graph."pesde/darklua@0.16.0 lune".dependencies]
@@ -336,7 +334,7 @@ resolved_ty = "standard"
 [graph."pesde/toolchainlib@0.1.12 lune".dependencies]
 "0x5eal/unzip@0.1.0 luau" = "unzip"
 "jiwonz/dirs@0.3.0 lune" = "dirs"
-"jiwonz/pathfs@0.3.1 lune" = "pathfs"
+"jiwonz/pathfs@0.3.2 lune" = "pathfs"
 "lukadev_0/option@1.2.0 lune" = "option"
 "lukadev_0/result@1.2.0 lune" = "result"
 

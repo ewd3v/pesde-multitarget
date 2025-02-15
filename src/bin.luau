@@ -21,7 +21,8 @@ local TARGETS_COLORS = {
 	roblox = stdio.color("red"),
 }
 
-local cli = argparse("multitarget")
+local CLI_NAME = "multitarget"
+local cli = argparse(CLI_NAME, "A tool to build a pesde project for multiple targets")
 
 local build = cli:command("build", "Build a pesde project for multiple targets")
 build:argument("project", "Path to the pesde.toml file"):default("pesde.toml")
@@ -252,6 +253,17 @@ setup:action(function()
 	end
 
 	print("You are ready to go! Try running 'multitarget build [arguments]' to build your project.")
+end)
+
+local version = cli:command("version", "Show the version of multitarget")
+version:action(function()
+	local multitargetPesdeToml = pathfs.File.fromExisting(
+		pathfs.Path.from(_G.PESDE_ROOT):join("pesde.toml")
+	)
+	local pesdeManifest: {
+		version: string,
+	} = serde.decode("toml", multitargetPesdeToml:readFile())
+	print(`{CLI_NAME} {pesdeManifest.version}`)
 end)
 
 cli:parse()
