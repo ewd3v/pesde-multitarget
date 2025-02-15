@@ -168,6 +168,12 @@ function multitarget.build(
 		table.insert(members, t)
 	end
 	if not buildFiles then
+		if targets.roblox then
+			return Result.Err({
+				message = `Build files are required for 'roblox' target.`,
+				outputDir = outputDir,
+			})
+		end
 		print(
 			`{stdio.color("yellow")}warn{stdio.color("reset")}: None of build files are specified. The files may not be processed properly. It is ok to skip if you haven't used '_G.{luaEnvGlobal}' in your build files.`
 		)
@@ -227,6 +233,19 @@ function multitarget.build(
 			newPesdeToml.includes = includes
 		end
 
+		if target == "luau" or target == "lune" then
+			newPesdeToml.target.build_files = nil
+		elseif target == "roblox" then
+			newPesdeToml.target.build_files = buildFiles
+			newPesdeToml.target.bin = nil
+			newPesdeToml.target.scripts = nil
+		end
+		newPesdeToml.target.environment = target
+		newPesdeToml.dev_dependencies = nil
+		newPesdeToml.peer_dependencies = nil
+		newPesdeToml.dependencies = nil
+		fs.writeFile(targetDir.path:join("pesde.toml"), serde.encode("toml", newPesdeToml, true))
+
 		local injectGlobalValueRule = {
 			rule = "inject_global_value",
 			identifier = luaEnvGlobal,
@@ -234,7 +253,6 @@ function multitarget.build(
 		}
 		if buildFiles then
 			if target == "luau" or target == "lune" then
-				newPesdeToml.target.build_files = nil
 				for _, buildFile in buildFiles do
 					local darkluaOutputPath = targetDir.path:join(buildFile)
 
@@ -247,10 +265,6 @@ function multitarget.build(
 					})
 				end
 			elseif target == "roblox" then
-				newPesdeToml.target.build_files = buildFiles
-				newPesdeToml.target.bin = nil
-				newPesdeToml.target.scripts = nil
-
 				-- need to install dependencies for darklua
 				local result = process.spawn("pesde", { "install" }, {
 					cwd = outputDir.path:toString(),
@@ -307,12 +321,6 @@ function multitarget.build(
 				end
 			end
 		end
-
-		newPesdeToml.target.environment = target
-		newPesdeToml.dev_dependencies = nil
-		newPesdeToml.peer_dependencies = nil
-		newPesdeToml.dependencies = nil
-		fs.writeFile(targetDir.path:join("pesde.toml"), serde.encode("toml", newPesdeToml, true))
 
 		for _, pesdeAddParam in pesdeAddParams do
 			local params = { "add" }
