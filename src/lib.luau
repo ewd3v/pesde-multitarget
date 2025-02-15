@@ -233,30 +233,26 @@ function multitarget.build(
 			value = target,
 		}
 		if buildFiles then
-			if target == "luau" or target == "lune" then
-				newPesdeToml.target.build_files = nil
-				for _, buildFile in buildFiles do
-					local darkluaOutputPath = targetDir.path:join(buildFile)
-
-					local rules = { injectGlobalValueRule :: any }
-					for _, rule in DEFAULT_DARKLUA_RULES do
-						table.insert(rules, rule)
-					end
-					darklua.process(buildFile, darkluaOutputPath:toString(), {
-						rules = rules,
-					}, {
-						stdio = "inherit",
-					})
+			newPesdeToml.target.build_files = nil
+			for _, buildFile in buildFiles do
+				local darkluaOutputPath = targetDir.path:join(buildFile)
+				local rules = { injectGlobalValueRule :: any }
+				for _, rule in DEFAULT_DARKLUA_RULES do
+					table.insert(rules, rule)
 				end
-			elseif target == "roblox" then
+				darklua.process(buildFile, darkluaOutputPath:toString(), {
+					rules = rules,
+				}, {
+					stdio = "inherit",
+				})
+			end
+			if target == "roblox" then
 				newPesdeToml.target.build_files = buildFiles
 				newPesdeToml.target.bin = nil
 				newPesdeToml.target.scripts = nil
 				for _, buildFile in buildFiles do
 					local darkluaOutputPath = targetDir.path:join(buildFile)
-
 					local rules = {
-						injectGlobalValueRule :: any,
 						{
 							rule = "convert_require",
 							current = {
@@ -269,14 +265,10 @@ function multitarget.build(
 							},
 						},
 					}
-					for _, rule in DEFAULT_DARKLUA_RULES do
-						table.insert(rules, rule)
-					end
-					darklua.process(buildFile, darkluaOutputPath:toString(), {
+					darklua.process(darkluaOutputPath:toString(), darkluaOutputPath:toString(), {
 						rules = rules,
 					}, {
 						stdio = "inherit",
-						cwd = targetDir.path:toString(),
 					})
 				end
 			end
