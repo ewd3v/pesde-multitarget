@@ -178,6 +178,16 @@ function multitarget.build(
 			`{stdio.color("yellow")}warn{stdio.color("reset")}: None of build files are specified. The files may not be processed properly. It is ok to skip if you haven't used '_G.{luaEnvGlobal}' in your build files.`
 		)
 	end
+
+	local workspacePesdeToml = {
+		name = "multitarget/root",
+		version = "0.0.0",
+		private = true,
+		workspace_members = members,
+		target = { environment = "luau" },
+	}
+	fs.writeFile(outputDir.path:join("pesde.toml"), serde.encode("toml", workspacePesdeToml, true))
+
 	for _, target in members do
 		environmentType:assert(target)
 
@@ -348,15 +358,6 @@ function multitarget.build(
 			end
 		end
 	end
-
-	local workspacePesdeToml = {
-		name = "multitarget/root",
-		version = "0.0.0",
-		private = true,
-		workspace_members = members,
-		target = { environment = "luau" },
-	}
-	fs.writeFile(outputDir.path:join("pesde.toml"), serde.encode("toml", workspacePesdeToml, true))
 
 	return Result.Ok(outputDir)
 end
