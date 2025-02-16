@@ -1,6 +1,7 @@
 local argparse = require("../lune_packages/argparse")
 local multitarget = require("./lib")
 local pathfs = require("../lune_packages/pathfs")
+local fs = pathfs.fs
 local stdio = require("@lune/stdio")
 local serde = require("@lune/serde")
 local process = require("@lune/process")
@@ -35,6 +36,7 @@ build:flag("--lune", "Build for Lune")
 build:flag("--roblox", "Build for Roblox")
 build:flag("-a --all", "Build for every targets (luau, lune, roblox)")
 build:option("--build-files", "Paths to build files"):args("*")
+build:flag("-f --force", "Force overwriting the output directory")
 build:action(function(args: {
 	project: string,
 	output: string,
@@ -45,8 +47,19 @@ build:action(function(args: {
 	roblox: boolean,
 	all: boolean,
 	build_files: { string }?,
+	force: boolean,
 })
 	local output = args.output
+	if fs.isDir(output) then
+		if
+			args.force or stdio.prompt("confirm", "Output directory already exists. Would you like to overwrite it?")
+		then
+			fs.removeDir(output)
+		else
+			print("Canceled. Output directory is already exists.")
+			process.exit(1)
+		end
+	end
 	if args.all then
 		args.luau = true
 		args.lune = true

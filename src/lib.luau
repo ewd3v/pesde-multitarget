@@ -296,19 +296,18 @@ function multitarget.build(
 			value = target,
 		}
 		if buildFiles then
-			if target == "luau" or target == "lune" then
-				for _, buildFile in buildFiles do
-					local darkluaOutputPath = targetDir.path:join(buildFile)
+			for _, buildFile in buildFiles do
+				local darkluaOutputPath = targetDir.path:join(buildFile)
 
-					local rules = { injectGlobalValueRule :: any }
-					for _, rule in DEFAULT_DARKLUA_RULES do
-						table.insert(rules, rule)
-					end
-					darklua.process(buildFile, darkluaOutputPath:toString(), {
-						rules = rules,
-					})
+				local rules = { injectGlobalValueRule :: any }
+				for _, rule in DEFAULT_DARKLUA_RULES do
+					table.insert(rules, rule)
 				end
-			elseif target == "roblox" then
+				darklua.process(buildFile, darkluaOutputPath:toString(), {
+					rules = rules,
+				})
+			end
+			if target == "roblox" then
 				-- need to install dependencies for darklua
 				local result = process.spawn("pesde", { "install" }, {
 					cwd = outputDir.path:toString(),
@@ -322,18 +321,18 @@ function multitarget.build(
 				end
 
 				for _, buildFile in buildFiles do
-					local luaurcFile = pathfs.File.new(targetDir.path:join(".luaurc"))
-					local luaurc = if luaurcFile:isFile() then
-						serde.decode("json", luaurcFile:readFile()) :: {
-							aliases: { [string]: string },
-						}
-					else nil
-					if luaurc then
-						for alias, path in luaurc.aliases do
-							luaurc.aliases[alias] = nil
-							luaurc.aliases["@" .. alias] = path
-						end
-					end
+					-- local luaurcFile = pathfs.File.new(targetDir.path:join(".luaurc"))
+					-- local luaurc = if luaurcFile:isFile() then
+					-- 	serde.decode("json", luaurcFile:readFile()) :: {
+					-- 		aliases: { [string]: string },
+					-- 	}
+					-- else nil
+					-- if luaurc then
+					-- 	for alias, path in luaurc.aliases do
+					-- 		luaurc.aliases[alias] = nil
+					-- 		luaurc.aliases["@" .. alias] = path
+					-- 	end
+					-- end
 					local darkluaOutputPath = targetDir.path:join(buildFile)
 
 					local rules = {
@@ -342,10 +341,10 @@ function multitarget.build(
 							rule = "convert_require",
 							current = {
 								name = "path",
-								sources = if luaurc then -- remove this after darklua 0.16.0
-									luaurc.aliases
-								else nil,
-								use_luau_configuration = false,
+								-- sources = if luaurc then
+								-- 	luaurc.aliases
+								-- else nil,
+								-- use_luau_configuration = false,
 							},
 							target = {
 								name = "roblox",
@@ -354,10 +353,7 @@ function multitarget.build(
 							},
 						},
 					}
-					for _, rule in DEFAULT_DARKLUA_RULES do
-						table.insert(rules, rule)
-					end
-					darklua.process(buildFile, darkluaOutputPath:toString(), {
+					darklua.process(darkluaOutputPath:toString(), darkluaOutputPath:toString(), {
 						rules = rules,
 					}, {
 						stdio = "inherit",
