@@ -56,7 +56,7 @@ build:action(function(args: {
 		then
 			fs.removeDir(output)
 		else
-			print("Canceled. Output directory is already exists.")
+			print("Canceled. Output directory already exists.")
 			process.exit(1)
 		end
 	end

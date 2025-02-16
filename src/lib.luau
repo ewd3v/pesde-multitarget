@@ -15,7 +15,7 @@ local DEFAULT_DARKLUA_RULES = {
 	"remove_empty_do",
 }
 local DEFAULT_PESDE_TOML_DIR = "pesde.toml"
-local DEFAULT_OUTPUT_DIR = "dist"
+local DEFAULT_OUTPUT_DIR = "target"
 local DEFAULT_LUA_ENV_GLOBAL = "LUA_ENV"
 local DEFAULT_PKG_ALIAS = "pkg"
 
