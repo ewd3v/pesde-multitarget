@@ -18,6 +18,7 @@ local DEFAULT_PESDE_TOML_DIR = "pesde.toml"
 local DEFAULT_OUTPUT_DIR = "target"
 local DEFAULT_LUA_ENV_GLOBAL = "LUA_ENV"
 local DEFAULT_PKG_ALIAS = "pkg"
+local DEFAULT_LUAU_PKG_ALIAS_PREFIX = "luau_"
 
 type Dependency = {
 	name: string?,
@@ -46,7 +47,7 @@ local multitarget = {}
 
 local targetsType = gt.build(gt.table({
 	luau = gt.opt(gt.boolean()),
-	lune = gt.opt(gt.boolean()),
+	lune = gt.opt(gt.string()),
 	roblox = gt.opt(gt.boolean()),
 }, {
 	min = 1,
@@ -180,10 +181,24 @@ function multitarget.build(
 		end
 	end
 
-	local members = {}
-	for t, _ in targets :: { [typeof(environmentType:type())]: boolean } do
-		table.insert(members, t)
+	do
+		local members = {}
+		for t, value in targets :: { [typeof(environmentType:type())]: (boolean | string)? } do
+			if value == nil then
+				continue
+			end
+			table.insert(members, t)
+		end
+		local workspacePesdeToml = {
+			name = "multitarget/root",
+			version = "0.0.0",
+			private = true,
+			workspace_members = members,
+			target = { environment = "luau" },
+		}
+		fs.writeFile(outputDir.path:join("pesde.toml"), serde.encode("toml", workspacePesdeToml, true))
 	end
+
 	if not buildFiles then
 		if targets.roblox then
 			return Result.Err({
@@ -196,16 +211,10 @@ function multitarget.build(
 		)
 	end
 
-	local workspacePesdeToml = {
-		name = "multitarget/root",
-		version = "0.0.0",
-		private = true,
-		workspace_members = members,
-		target = { environment = "luau" },
-	}
-	fs.writeFile(outputDir.path:join("pesde.toml"), serde.encode("toml", workspacePesdeToml, true))
-
-	for _, target in members do
+	for target: "lune" | "luau" | "roblox", value in targets :: { [any]: (boolean | string)? } do
+		if value == nil then
+			continue
+		end
 		environmentType:assert(target)
 
 		local targetDir = pathfs.Directory.new(outputDir.path:join(target))
@@ -251,6 +260,9 @@ function multitarget.build(
 				then serde.decode("json", luaurcFile:readFile())
 				else {}
 			tableHelper.set(luaurc, { "aliases", pkgAlias }, `./{target}_packages/`)
+			if target == "lune" then
+				tableHelper.set(luaurc, { "aliases", value :: string .. pkgAlias }, `./luau_packages/`)
+			end
 			luaurcFile:writeFile(serde.encode("json", luaurc, true))
 
 			local includes = newPesdeToml.includes or {}
@@ -364,5 +376,6 @@ multitarget.DEFAULT_PESDE_TOML_DIR = DEFAULT_PESDE_TOML_DIR
 multitarget.DEFAULT_OUTPUT_DIR = DEFAULT_OUTPUT_DIR
 multitarget.DEFAULT_LUA_ENV_GLOBAL = DEFAULT_LUA_ENV_GLOBAL
 multitarget.DEFAULT_PKG_ALIAS = DEFAULT_PKG_ALIAS
+multitarget.DEFAULT_LUAU_PKG_ALIAS_PREFIX = DEFAULT_LUAU_PKG_ALIAS_PREFIX
 
 return multitarget

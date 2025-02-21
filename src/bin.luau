@@ -22,6 +22,7 @@ local COLORFUL_TARGETS = {
 	lune = chalk.bgMagenta(chalk.bold("Lune")),
 	roblox = chalk.red(chalk.bold("ROBLOX")),
 }
+local DEFAULT_LUAU_PKG_ALIAS_PREFIX = multitarget.DEFAULT_LUAU_PKG_ALIAS_PREFIX
 
 local CLI_NAME = "multitarget"
 local cli = argparse(CLI_NAME, "A tool to build a pesde project for multiple targets")
@@ -32,7 +33,7 @@ build:option("-o --output", "Output directory"):default(DEFAULT_OUTPUT_DIR)
 build:option("-g --global", "Lua environment global variable name"):default(DEFAULT_LUA_ENV_GLOBAL)
 build:option("-p --pkg", "Package alias name"):default(DEFAULT_PKG_ALIAS)
 build:flag("--luau", "Build for Luau")
-build:flag("--lune", "Build for Lune")
+build:option("--lune", "Build for Lune and Prefix for luau package alias"):default(DEFAULT_LUAU_PKG_ALIAS_PREFIX)
 build:flag("--roblox", "Build for Roblox")
 build:flag("-a --all", "Build for every targets (luau, lune, roblox)")
 build:option("--build-files", "Paths to build files"):args("*")
@@ -44,7 +45,7 @@ build:action(function(args: {
 	global: string,
 	pkg: string,
 	luau: boolean,
-	lune: boolean,
+	lune: string,
 	roblox: boolean,
 	all: boolean,
 	build_files: { string }?,
@@ -62,7 +63,7 @@ build:action(function(args: {
 	end
 	if args.all then
 		args.luau = true
-		args.lune = true
+		args.lune = DEFAULT_LUAU_PKG_ALIAS_PREFIX
 		args.roblox = true
 	end
 	local targets = {
@@ -158,10 +159,11 @@ setup:action(function()
 			if
 				stdio.prompt(
 					"confirm",
-					"Found dependencies in pesde.toml. Would you like to add @{DEFAULT_PKG_ALIAS} alias in .luaurc for each target's dependencies?"
+					"Found dependencies in pesde.toml. Would you like to add aliases '@{DEFAULT_PKG_ALIAS}' and '@{DEFAULT_LUAU_PKG_ALIAS_PREFIX}{DEFAULT_PKG_ALIAS}' in .luaurc for each target's dependencies?"
 				)
 			then
 				tableHelper.set(luaurc, { "aliases", DEFAULT_PKG_ALIAS }, pkgPath)
+				tableHelper.set(luaurc, { "aliases", DEFAULT_LUAU_PKG_ALIAS_PREFIX .. DEFAULT_PKG_ALIAS }, "./luau_packages/")
 				luaurcFile:writeFile(serde.encode("json", luaurc, true))
 			end
 		end
