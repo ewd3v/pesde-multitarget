@@ -163,7 +163,11 @@ setup:action(function()
 				)
 			then
 				tableHelper.set(luaurc, { "aliases", DEFAULT_PKG_ALIAS }, pkgPath)
-				tableHelper.set(luaurc, { "aliases", DEFAULT_LUAU_PKG_ALIAS_PREFIX .. DEFAULT_PKG_ALIAS }, "./luau_packages/")
+				tableHelper.set(
+					luaurc,
+					{ "aliases", DEFAULT_LUAU_PKG_ALIAS_PREFIX .. DEFAULT_PKG_ALIAS },
+					"./luau_packages/"
+				)
 				luaurcFile:writeFile(serde.encode("json", luaurc, true))
 			end
 		end
