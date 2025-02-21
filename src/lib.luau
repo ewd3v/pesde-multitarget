@@ -68,6 +68,8 @@ local optionalAsPathType = gt.build(gt.opt(pathfs.types.AsPath:type()))
 
 	Builds a pesde project for multiple targets
 
+	Pass `nil` to use default arguments.
+
 	```lua
 	local result = multitarget.build("pesde.toml", {
 		luau = true,
