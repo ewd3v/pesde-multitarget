@@ -260,8 +260,13 @@ function multitarget.build(
 				then serde.decode("json", luaurcFile:readFile())
 				else {}
 			tableHelper.set(luaurc, { "aliases", pkgAlias }, `./{target}_packages/`)
-			if target == "lune" then
-				tableHelper.set(luaurc, { "aliases", value :: string .. pkgAlias }, `./luau_packages/`)
+			if targets.lune then
+				local luauPkgAlias = value :: string .. pkgAlias
+				if target == "lune" then
+					tableHelper.set(luaurc, { "aliases", luauPkgAlias }, `./luau_packages/`)
+				elseif target == "roblox" then
+					tableHelper.set(luaurc, { "aliases", luauPkgAlias }, `./roblox_packages/`)
+				end
 			end
 			luaurcFile:writeFile(serde.encode("json", luaurc, true))
 
