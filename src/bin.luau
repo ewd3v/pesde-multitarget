@@ -159,7 +159,7 @@ setup:action(function()
 			if
 				stdio.prompt(
 					"confirm",
-					"Found dependencies in pesde.toml. Would you like to add aliases '@{DEFAULT_PKG_ALIAS}' and '@{DEFAULT_LUAU_PKG_ALIAS_PREFIX}{DEFAULT_PKG_ALIAS}' in .luaurc for each target's dependencies?"
+					`Found dependencies in pesde.toml. Would you like to add default aliases '@{DEFAULT_PKG_ALIAS}' and '@{DEFAULT_LUAU_PKG_ALIAS_PREFIX}{DEFAULT_PKG_ALIAS}' in .luaurc for each target's dependencies?`
 				)
 			then
 				tableHelper.set(luaurc, { "aliases", DEFAULT_PKG_ALIAS }, pkgPath)
