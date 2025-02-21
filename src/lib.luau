@@ -140,6 +140,7 @@ function multitarget.build(
 		dev_dependencies: { [string]: Dependency }?,
 		peer_dependencies: { [string]: Dependency }?,
 		private: boolean?,
+		engines: { [string]: string }?,
 	} =
 		serde.decode("toml", pesdeTomlFile:readFile())
 
@@ -265,6 +266,7 @@ function multitarget.build(
 			newPesdeToml.target.build_files = buildFiles
 			newPesdeToml.target.bin = nil
 			newPesdeToml.target.scripts = nil
+			newPesdeToml.engines = nil
 		end
 		newPesdeToml.target.environment = target
 		newPesdeToml.dev_dependencies = nil
