@@ -1,5 +1,5 @@
 name = "jiwonz/multitarget"
-version = "0.4.0-rc.20"
+version = "0.4.0-rc.21"
 description = "Customizable and flexible build script for multiple pesde targets"
 authors = ["jiwonz <me@jiwonz.kr>"]
 repository = "https://github.com/jiwonz/pesde-multitarget"
@@ -16,6 +16,10 @@ default = "https://github.com/pesde-pkg/index"
 
 [scripts]
 example = "scripts/example.luau"
+
+[engines]
+lune = "^0.8.9"
+pesde = "^0.6.0-rc.6"
 
 [peer_dependencies]
 darklua = { name = "pesde/darklua", version = "^0.16.0" }
