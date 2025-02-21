@@ -56,6 +56,7 @@ local environmentType = gt.build(gt.union(gt.literal("luau"), gt.literal("lune")
 local optionalStringType = gt.build(gt.opt(gt.string()))
 local optionalStringArrayType = gt.build(gt.opt(gt.array(gt.string())))
 local optionalAsPathType = gt.build(gt.opt(pathfs.types.AsPath:type()))
+local optionalBooleanType = gt.build(gt.opt(gt.boolean()))
 
 --[=[
 	@within multitarget
@@ -65,6 +66,7 @@ local optionalAsPathType = gt.build(gt.opt(pathfs.types.AsPath:type()))
 	@param buildFiles { string }? -- Paths to build files
 	@param luaEnvGlobal string? -- Lua environment global variable name. Default is `LUA_ENV`.
 	@param pkgAlias string? -- Package alias name. Default is `pkg`.
+	@param strict boolean? -- Stop the process if any error occurs while re-adding dependencies. Defaults to `true`.
 
 	Builds a pesde project for multiple targets
 
@@ -90,7 +92,8 @@ function multitarget.build(
 	outputPath: typeof(optionalAsPathType:type()),
 	buildFiles: typeof(optionalStringArrayType:type()),
 	luaEnvGlobal: typeof(optionalStringType:type()),
-	pkgAlias: typeof(optionalStringType:type())
+	pkgAlias: typeof(optionalStringType:type()),
+	strict: typeof(optionalBooleanType:type())
 ): Result.Result<pathfs.Directory, {
 	message: string,
 	outputDir: pathfs.Directory?,
@@ -101,7 +104,10 @@ function multitarget.build(
 	optionalStringArrayType:assert(buildFiles)
 	optionalStringType:assert(luaEnvGlobal)
 	optionalStringType:assert(pkgAlias)
+	optionalBooleanType:assert(strict)
 
+	-- selene: allow(shadowing)
+	local strict = strict == nil or strict
 	-- selene: allow(shadowing)
 	local pesdeTomlPath = pesdeTomlPath or DEFAULT_PESDE_TOML_DIR
 	-- selene: allow(shadowing)
@@ -284,7 +290,7 @@ function multitarget.build(
 					stdio = "inherit",
 				})
 			end
-			if not result.ok then
+			if strict and not result.ok then
 				return Result.Err({
 					message = `Failed to add dependency '{table.concat(pesdeAddParam, " ")}' to '{target}' target.`,
 					outputDir = outputDir,
@@ -323,18 +329,6 @@ function multitarget.build(
 				end
 
 				for _, buildFile in buildFiles do
-					-- local luaurcFile = pathfs.File.new(targetDir.path:join(".luaurc"))
-					-- local luaurc = if luaurcFile:isFile() then
-					-- 	serde.decode("json", luaurcFile:readFile()) :: {
-					-- 		aliases: { [string]: string },
-					-- 	}
-					-- else nil
-					-- if luaurc then
-					-- 	for alias, path in luaurc.aliases do
-					-- 		luaurc.aliases[alias] = nil
-					-- 		luaurc.aliases["@" .. alias] = path
-					-- 	end
-					-- end
 					local darkluaOutputPath = targetDir.path:join(buildFile)
 
 					local rules = {
@@ -343,10 +337,6 @@ function multitarget.build(
 							rule = "convert_require",
 							current = {
 								name = "path",
-								-- sources = if luaurc then
-								-- 	luaurc.aliases
-								-- else nil,
-								-- use_luau_configuration = false,
 							},
 							target = {
 								name = "roblox",

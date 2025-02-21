@@ -36,7 +36,8 @@ build:flag("--lune", "Build for Lune")
 build:flag("--roblox", "Build for Roblox")
 build:flag("-a --all", "Build for every targets (luau, lune, roblox)")
 build:option("--build-files", "Paths to build files"):args("*")
-build:flag("-f --force", "Force overwriting the output directory")
+build:flag("-y --yes", "Automatically confirm prompts without asking")
+build:flag("--non-strict", "Do not fail the build when there are errors while re-adding dependencies")
 build:action(function(args: {
 	project: string,
 	output: string,
@@ -47,13 +48,12 @@ build:action(function(args: {
 	roblox: boolean,
 	all: boolean,
 	build_files: { string }?,
-	force: boolean,
+	yes: boolean,
+	non_strict: boolean,
 })
 	local output = args.output
 	if fs.isDir(output) then
-		if
-			args.force or stdio.prompt("confirm", "Output directory already exists. Would you like to overwrite it?")
-		then
+		if args.yes or stdio.prompt("confirm", "Output directory already exists. Would you like to overwrite it?") then
 			fs.removeDir(output)
 		else
 			print("Canceled. Output directory already exists.")
@@ -70,7 +70,8 @@ build:action(function(args: {
 		lune = args.lune,
 		roblox = args.roblox,
 	}
-	local result = multitarget.build(args.project, targets, output, args.build_files, args.global, args.pkg)
+	local result =
+		multitarget.build(args.project, targets, output, args.build_files, args.global, args.pkg, not args.non_strict)
 	if result:isErr() then
 		local err = result:unwrapErr()
 
@@ -267,7 +268,11 @@ setup:action(function()
 		end
 	end
 
-	print("You are ready to go! Try running 'multitarget build [arguments]' to build your project.")
+	print(
+		chalk.green(
+			chalk.bold("You are ready to go! Try running 'multitarget build [arguments]' to build your project.")
+		)
+	)
 end)
 
 local version = cli:command("version", "Show the version of multitarget")
