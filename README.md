@@ -36,7 +36,9 @@ multitarget.build(
 		"build files path" -- files/directories to be built
 	},
 	"LUA_ENV", -- defaults to "LUA_ENV"
-	"pkg" -- defaults to "pkg"
+	"pkg", -- defaults to "pkg"
+	"luau_pkg", -- defaults to "luau_pkg"
+	true -- defaults to true
 )
 ```
 `pesde.toml`
