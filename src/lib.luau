@@ -142,6 +142,7 @@ function multitarget.build(
 		peer_dependencies: { [string]: Dependency }?,
 		private: boolean?,
 		engines: { [string]: string }?,
+		wally_indices: { [string]: string }?,
 	} =
 		serde.decode("toml", pesdeTomlFile:readFile())
 
@@ -278,6 +279,7 @@ function multitarget.build(
 
 		if target == "luau" or target == "lune" then
 			newPesdeToml.target.build_files = nil
+			newPesdeToml.wally_indices = nil
 		elseif target == "roblox" then
 			newPesdeToml.target.build_files = buildFiles
 			newPesdeToml.target.bin = nil
