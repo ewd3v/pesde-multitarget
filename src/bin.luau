@@ -73,8 +73,16 @@ build:action(function(args: {
 		lune = args.lune,
 		roblox = args.roblox,
 	}
-	local result =
-		multitarget.build(args.project, targets, output, args.build_files, args.global, args.pkg, args.luau_pkg, not args.non_strict)
+	local result = multitarget.build(
+		args.project,
+		targets,
+		output,
+		args.build_files,
+		args.global,
+		args.pkg,
+		args.luau_pkg,
+		not args.non_strict
+	)
 	if result:isErr() then
 		local err = result:unwrapErr()
 
@@ -165,11 +173,7 @@ setup:action(function()
 				)
 			then
 				tableHelper.set(luaurc, { "aliases", DEFAULT_PKG_ALIAS }, pkgPath)
-				tableHelper.set(
-					luaurc,
-					{ "aliases", DEFAULT_LUAU_PKG_ALIAS },
-					"./luau_packages/"
-				)
+				tableHelper.set(luaurc, { "aliases", DEFAULT_LUAU_PKG_ALIAS }, "./luau_packages/")
 				luaurcFile:writeFile(serde.encode("json", luaurc, true))
 			end
 		end
