@@ -22,7 +22,7 @@ local COLORFUL_TARGETS = {
 	lune = chalk.bgMagenta(chalk.bold("Lune")),
 	roblox = chalk.red(chalk.bold("ROBLOX")),
 }
-local DEFAULT_LUAU_PKG_ALIAS_PREFIX = multitarget.DEFAULT_LUAU_PKG_ALIAS_PREFIX
+local DEFAULT_LUAU_PKG_ALIAS = multitarget.DEFAULT_LUAU_PKG_ALIAS
 
 local CLI_NAME = "multitarget"
 local cli = argparse(CLI_NAME, "A tool to build a pesde project for multiple targets")
@@ -32,8 +32,9 @@ build:argument("project", "Path to the pesde.toml file"):default("pesde.toml")
 build:option("-o --output", "Output directory"):default(DEFAULT_OUTPUT_DIR)
 build:option("-g --global", "Lua environment global variable name"):default(DEFAULT_LUA_ENV_GLOBAL)
 build:option("-p --pkg", "Package alias name"):default(DEFAULT_PKG_ALIAS)
+build:option("--luau-pkg", "Luau Package alias name"):default(DEFAULT_LUAU_PKG_ALIAS)
 build:flag("--luau", "Build for Luau")
-build:option("--lune", "Build for Lune and Prefix for luau package alias"):default(DEFAULT_LUAU_PKG_ALIAS_PREFIX)
+build:flag("--lune", "Build for Lune and Prefix for luau package alias")
 build:flag("--roblox", "Build for Roblox")
 build:flag("-a --all", "Build for every targets (luau, lune, roblox)")
 build:option("--build-files", "Paths to build files"):args("*")
@@ -44,8 +45,9 @@ build:action(function(args: {
 	output: string,
 	global: string,
 	pkg: string,
+	luau_pkg: string,
 	luau: boolean,
-	lune: string,
+	lune: boolean,
 	roblox: boolean,
 	all: boolean,
 	build_files: { string }?,
@@ -63,7 +65,7 @@ build:action(function(args: {
 	end
 	if args.all then
 		args.luau = true
-		args.lune = DEFAULT_LUAU_PKG_ALIAS_PREFIX
+		args.lune = true
 		args.roblox = true
 	end
 	local targets = {
@@ -72,7 +74,7 @@ build:action(function(args: {
 		roblox = args.roblox,
 	}
 	local result =
-		multitarget.build(args.project, targets, output, args.build_files, args.global, args.pkg, not args.non_strict)
+		multitarget.build(args.project, targets, output, args.build_files, args.global, args.pkg, args.luau_pkg, not args.non_strict)
 	if result:isErr() then
 		local err = result:unwrapErr()
 
@@ -159,13 +161,13 @@ setup:action(function()
 			if
 				stdio.prompt(
 					"confirm",
-					`Found dependencies in pesde.toml. Would you like to add default aliases '@{DEFAULT_PKG_ALIAS}' and '@{DEFAULT_LUAU_PKG_ALIAS_PREFIX}{DEFAULT_PKG_ALIAS}' in .luaurc for each target's dependencies?`
+					`Found dependencies in pesde.toml. Would you like to add default aliases '@{DEFAULT_PKG_ALIAS}' and '@{DEFAULT_LUAU_PKG_ALIAS}' in .luaurc for each target's dependencies?`
 				)
 			then
 				tableHelper.set(luaurc, { "aliases", DEFAULT_PKG_ALIAS }, pkgPath)
 				tableHelper.set(
 					luaurc,
-					{ "aliases", DEFAULT_LUAU_PKG_ALIAS_PREFIX .. DEFAULT_PKG_ALIAS },
+					{ "aliases", DEFAULT_LUAU_PKG_ALIAS },
 					"./luau_packages/"
 				)
 				luaurcFile:writeFile(serde.encode("json", luaurc, true))

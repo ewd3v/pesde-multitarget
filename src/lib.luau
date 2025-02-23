@@ -18,7 +18,7 @@ local DEFAULT_PESDE_TOML_DIR = "pesde.toml"
 local DEFAULT_OUTPUT_DIR = "target"
 local DEFAULT_LUA_ENV_GLOBAL = "LUA_ENV"
 local DEFAULT_PKG_ALIAS = "pkg"
-local DEFAULT_LUAU_PKG_ALIAS_PREFIX = "luau_"
+local DEFAULT_LUAU_PKG_ALIAS = "luau_pkg"
 
 type Dependency = {
 	name: string?,
@@ -47,7 +47,7 @@ local multitarget = {}
 
 local targetsType = gt.build(gt.table({
 	luau = gt.opt(gt.boolean()),
-	lune = gt.opt(gt.string()),
+	lune = gt.opt(gt.boolean()),
 	roblox = gt.opt(gt.boolean()),
 }, {
 	min = 1,
@@ -94,6 +94,7 @@ function multitarget.build(
 	buildFiles: typeof(optionalStringArrayType:type()),
 	luaEnvGlobal: typeof(optionalStringType:type()),
 	pkgAlias: typeof(optionalStringType:type()),
+	luauPkgAlias: typeof(optionalStringType:type()),
 	strict: typeof(optionalBooleanType:type())
 ): Result.Result<pathfs.Directory, {
 	message: string,
@@ -105,8 +106,11 @@ function multitarget.build(
 	optionalStringArrayType:assert(buildFiles)
 	optionalStringType:assert(luaEnvGlobal)
 	optionalStringType:assert(pkgAlias)
+	optionalStringType:assert(luauPkgAlias)
 	optionalBooleanType:assert(strict)
 
+	-- selene: allow(shadowing)
+	local luauPkgAlias = luauPkgAlias or DEFAULT_LUAU_PKG_ALIAS
 	-- selene: allow(shadowing)
 	local strict = strict == nil or strict
 	-- selene: allow(shadowing)
@@ -184,7 +188,7 @@ function multitarget.build(
 
 	do
 		local members = {}
-		for t, value in targets :: { [typeof(environmentType:type())]: (boolean | string)? } do
+		for t, value in targets :: { [typeof(environmentType:type())]: boolean? } do
 			if value == nil then
 				continue
 			end
@@ -212,7 +216,7 @@ function multitarget.build(
 		)
 	end
 
-	for target: "lune" | "luau" | "roblox", value in targets :: { [any]: (boolean | string)? } do
+	for target: "lune" | "luau" | "roblox", value in targets :: { [any]: boolean? } do
 		if value == nil then
 			continue
 		end
@@ -263,9 +267,9 @@ function multitarget.build(
 			tableHelper.set(luaurc, { "aliases", pkgAlias }, `./{target}_packages/`)
 			if targets.lune then
 				if target == "lune" then
-					tableHelper.set(luaurc, { "aliases", targets.lune .. pkgAlias }, `./luau_packages/`)
+					tableHelper.set(luaurc, { "aliases", luauPkgAlias }, `./luau_packages/`)
 				elseif target == "roblox" then
-					tableHelper.set(luaurc, { "aliases", targets.lune .. pkgAlias }, `./roblox_packages/`)
+					tableHelper.set(luaurc, { "aliases", luauPkgAlias }, `./roblox_packages/`)
 				end
 			end
 			luaurcFile:writeFile(serde.encode("json", luaurc, true))
@@ -382,6 +386,6 @@ multitarget.DEFAULT_PESDE_TOML_DIR = DEFAULT_PESDE_TOML_DIR
 multitarget.DEFAULT_OUTPUT_DIR = DEFAULT_OUTPUT_DIR
 multitarget.DEFAULT_LUA_ENV_GLOBAL = DEFAULT_LUA_ENV_GLOBAL
 multitarget.DEFAULT_PKG_ALIAS = DEFAULT_PKG_ALIAS
-multitarget.DEFAULT_LUAU_PKG_ALIAS_PREFIX = DEFAULT_LUAU_PKG_ALIAS_PREFIX
+multitarget.DEFAULT_LUAU_PKG_ALIAS = DEFAULT_LUAU_PKG_ALIAS
 
 return multitarget
