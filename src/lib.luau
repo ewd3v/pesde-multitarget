@@ -170,18 +170,18 @@ function multitarget.build(
 		return nil
 	end
 	if pesdeToml.dependencies then
-		for _, dep in pesdeToml.dependencies do
+		for alias, dep in pesdeToml.dependencies do
 			local packageName = getPackageName(dep)
 			if packageName then
-				table.insert(pesdeAddParams, { packageName })
+				table.insert(pesdeAddParams, { "--alias", alias, packageName })
 			end
 		end
 	end
 	if pesdeToml.peer_dependencies then
-		for _, dep in pesdeToml.peer_dependencies do
+		for alias, dep in pesdeToml.peer_dependencies do
 			local packageName = getPackageName(dep)
 			if packageName then
-				table.insert(pesdeAddParams, { "--peer", packageName })
+				table.insert(pesdeAddParams, { "--alias", alias, "--peer", packageName })
 			end
 		end
 	end
