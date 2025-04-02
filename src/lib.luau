@@ -224,6 +224,8 @@ function multitarget.build(
 		environmentType:assert(target)
 
 		local targetDir = pathfs.Directory.new(outputDir.path:join(target))
+		targetDir:writeDir() -- assure it exists (may not exist later if the user uses "includes" incorrectly, which would throw an undescriptive error later when trying to access this directory)
+
 		-- selene: allow(shadowing)
 		local newPesdeToml = tableHelper.copy(pesdeToml, true)
 		if newPesdeToml.includes then
