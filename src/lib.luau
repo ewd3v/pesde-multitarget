@@ -230,8 +230,16 @@ function multitarget.build(
 		local newPesdeToml = tableHelper.copy(pesdeToml, true)
 		if newPesdeToml.includes then
 			for _, include in newPesdeToml.includes do
-				for _, path in glob(include) do
-					local dest = targetDir.path:join(path)
+				for _, path in
+					glob(include, {
+						-- TODO: Update glob package when a fix is made for the cwd option (this is broken in jiwonz/glob@0.1.0).
+						cwd = workingDir:toString(), -- could in theory just pass the Path object as glob actually supports that, but tostring it to keep the typechecker happy & avoid any future issues.
+					})
+				do
+					local dest = targetDir.path:join(
+						path:stripPrefix(workingDir)
+							or error(`include glob "{include}" found file {path} which is not prefixed by {workingDir}`) -- this shouldn't really happen
+					)
 					local parent = dest:parent()
 					if parent then
 						fs.writeDir(parent)
