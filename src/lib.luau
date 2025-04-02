@@ -131,7 +131,7 @@ function multitarget.build(
 	end
 	-- selene: allow(shadowing)
 	local outputDir = pathfs.Directory.create(outputPath)
-	local workingDir = pesdeTomlFile.path:parent() or pathfs.cwd()
+	local workingDirPath = pesdeTomlFile.path:parent() or pathfs.cwd()
 
 	local pesdeToml: {
 		includes: { string }?,
@@ -233,12 +233,14 @@ function multitarget.build(
 				for _, path in
 					glob(include, {
 						-- TODO: Update glob package when a fix is made for the cwd option (this is broken in jiwonz/glob@0.1.0).
-						cwd = workingDir:toString(), -- could in theory just pass the Path object as glob actually supports that, but tostring it to keep the typechecker happy & avoid any future issues.
+						cwd = workingDirPath:toString(), -- could in theory just pass the Path object as glob actually supports that, but tostring it to keep the typechecker happy & avoid any future issues.
 					})
 				do
 					local dest = targetDir.path:join(
-						path:stripPrefix(workingDir)
-							or error(`include glob "{include}" found file {path} which is not prefixed by {workingDir}`) -- this shouldn't really happen
+						path:stripPrefix(workingDirPath)
+							or error(
+								`include glob "{include}" found file {path} which is not prefixed by {workingDirPath}`
+							) -- this shouldn't really happen
 					)
 					local parent = dest:parent()
 					if parent then
@@ -254,7 +256,7 @@ function multitarget.build(
 				if parent then
 					fs.writeDir(parent)
 				end
-				fs.copy(workingDir:join(newPesdeToml.target.lib), dest, true)
+				fs.copy(workingDirPath:join(newPesdeToml.target.lib), dest, true)
 			end
 			if newPesdeToml.target.bin then
 				local dest = targetDir.path:join(newPesdeToml.target.bin)
@@ -262,7 +264,7 @@ function multitarget.build(
 				if parent then
 					fs.writeDir(parent)
 				end
-				fs.copy(workingDir:join(newPesdeToml.target.bin), dest, true)
+				fs.copy(workingDirPath:join(newPesdeToml.target.bin), dest, true)
 			end
 		end
 
