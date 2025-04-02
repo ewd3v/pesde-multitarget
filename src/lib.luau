@@ -131,6 +131,7 @@ function multitarget.build(
 	end
 	-- selene: allow(shadowing)
 	local outputDir = pathfs.Directory.create(outputPath)
+	local workingDir = pesdeTomlFile.path:parent() or pathfs.cwd()
 
 	local pesdeToml: {
 		includes: { string }?,
@@ -243,7 +244,7 @@ function multitarget.build(
 				if parent then
 					fs.writeDir(parent)
 				end
-				fs.copy(newPesdeToml.target.lib, dest, true)
+				fs.copy(workingDir:join(newPesdeToml.target.lib), dest, true)
 			end
 			if newPesdeToml.target.bin then
 				local dest = targetDir.path:join(newPesdeToml.target.bin)
@@ -251,7 +252,7 @@ function multitarget.build(
 				if parent then
 					fs.writeDir(parent)
 				end
-				fs.copy(newPesdeToml.target.bin, dest, true)
+				fs.copy(workingDir:join(newPesdeToml.target.bin), dest, true)
 			end
 		end
 
