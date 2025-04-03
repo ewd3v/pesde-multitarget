@@ -218,7 +218,7 @@ function multitarget.build(
 	end
 
 	for target: "lune" | "luau" | "roblox", value in targets :: { [any]: boolean? } do
-		if value == nil then
+		if not value then
 			continue
 		end
 		environmentType:assert(target)
