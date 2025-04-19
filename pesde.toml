@@ -1,5 +1,5 @@
 name = "jiwonz/multitarget"
-version = "0.4.0-rc.28"
+version = "0.4.0-rc.29"
 description = "Customizable and flexible build script for multiple pesde targets"
 authors = ["jiwonz <me@jiwonz.kr>"]
 repository = "https://github.com/jiwonz/pesde-multitarget"
@@ -25,14 +25,17 @@ pesde = "^0.6.0"
 darklua = { name = "pesde/darklua", version = "^0.16.0" }
 
 [dependencies]
-pathfs = { name = "jiwonz/pathfs", version = "^0.6.0-rc.1" }
+pathfs = { name = "jiwonz/pathfs", version = "^0.6.0-rc.3" }
 greentea = { name = "corecii/greentea", version = "^0.4.11" }
 argparse = { name = "caveful_games/argparse", version = "^0.1.2" }
 glob = { name = "jiwonz/glob", version = "^0.1.0" }
 darklua_lune = { name = "jiwonz/darklua_lune", version = "^0.1.4" }
 result = { name = "lukadev_0/result", version = "^1.2.0" }
-chalk_luau = { name = "kimpure/chalk_luau", version = "^0.1.2", target = "luau" }
+chalk_luau = { name = "kimpure/chalk_luau", version = "^0.1.7", target = "luau" }
 table_helper = { name = "caveful_games/table_helper", version = "^0.2.0-rc.1", target = "luau" }
 
 [dev_dependencies]
-luau_check = { name = "jiwonz/luau_check", version = "^0.3.8" }
+luau_check = { name = "jiwonz/luau_check", version = "^0.3.13" }
+selene = { name = "pesde/selene", version = "^0.28.0" }
+stylua = { name = "pesde/stylua", version = "^2.0.2" }
+luau_lsp = { name = "pesde/luau_lsp", version = "^1.42.1" }

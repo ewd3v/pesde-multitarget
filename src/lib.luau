@@ -123,7 +123,7 @@ function multitarget.build(
 	local pkgAlias = pkgAlias or DEFAULT_PKG_ALIAS
 	-- selene: allow(shadowing)
 	local pesdeTomlFile = pathfs.File.fromExisting(pesdeTomlPath)
-	local outputDir = pathfs.findDirectory(outputPath)
+	local outputDir = pathfs.findDir(outputPath)
 	if outputDir then
 		return Result.Err({
 			message = `Output directory '{outputDir.path}' already exists.`,
