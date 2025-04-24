@@ -131,6 +131,7 @@ function multitarget.build(
 	end
 	-- selene: allow(shadowing)
 	local outputDir = pathfs.Directory.create(outputPath)
+	local workingDirPath = pesdeTomlFile.path:parent() or pathfs.cwd()
 
 	local pesdeToml: {
 		includes: { string }?,
@@ -223,12 +224,23 @@ function multitarget.build(
 		environmentType:assert(target)
 
 		local targetDir = pathfs.Directory.new(outputDir.path:join(target))
+		targetDir:writeDir() -- assure it exists (may not exist later if the user uses "includes" incorrectly, which would throw an undescriptive error later when trying to access this directory)
+
 		-- selene: allow(shadowing)
 		local newPesdeToml = tableHelper.copy(pesdeToml, true)
 		if newPesdeToml.includes then
 			for _, include in newPesdeToml.includes do
-				for _, path in glob(include) do
-					local dest = targetDir.path:join(path)
+				for _, path in
+					glob(include, {
+						cwd = workingDirPath,
+					})
+				do
+					local dest = targetDir.path:join(
+						path:stripPrefix(workingDirPath)
+							or error(
+								`include glob "{include}" found file {path} which is not prefixed by {workingDirPath}`
+							) -- this shouldn't really happen
+					)
 					local parent = dest:parent()
 					if parent then
 						fs.writeDir(parent)
@@ -243,7 +255,7 @@ function multitarget.build(
 				if parent then
 					fs.writeDir(parent)
 				end
-				fs.copy(newPesdeToml.target.lib, dest, true)
+				fs.copy(workingDirPath:join(newPesdeToml.target.lib), dest, true)
 			end
 			if newPesdeToml.target.bin then
 				local dest = targetDir.path:join(newPesdeToml.target.bin)
@@ -251,7 +263,7 @@ function multitarget.build(
 				if parent then
 					fs.writeDir(parent)
 				end
-				fs.copy(newPesdeToml.target.bin, dest, true)
+				fs.copy(workingDirPath:join(newPesdeToml.target.bin), dest, true)
 			end
 		end
 

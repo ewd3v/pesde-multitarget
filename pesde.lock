@@ -103,23 +103,24 @@ greentea = [{ name = "corecii/greentea", version = "^0.4.10", index = "https://g
 luau_check = [{ name = "jiwonz/luau_check", version = "^0.3.8", index = "https://github.com/daimond113/pesde-index" }, "dev"]
 pathfs = [{ name = "jiwonz/pathfs", version = "^0.6.0-rc.1", index = "https://github.com/daimond113/pesde-index" }, "standard"]
 
-[graph."jiwonz/glob@0.1.0 lune"]
-direct = ["glob", { name = "jiwonz/glob", version = "^0.1.0", index = "default" }, "standard"]
+[graph."jiwonz/glob@0.1.1 lune"]
+direct = ["glob", { name = "jiwonz/glob", version = "^0.1.1", index = "default" }, "standard"]
 resolved_ty = "standard"
 
-[graph."jiwonz/glob@0.1.0 lune".dependencies]
-"jiwonz/pathfs@0.3.2 lune" = "pathfs"
+[graph."jiwonz/glob@0.1.1 lune".dependencies]
+"jiwonz/pathfs@0.6.0-rc.4 lune" = "pathfs"
 "kimpure/globrex_lune@0.2.4 lune" = "globrex_lune"
 
-[graph."jiwonz/glob@0.1.0 lune".pkg_ref]
+[graph."jiwonz/glob@0.1.1 lune".pkg_ref]
 ref_ty = "pesde"
 index_url = "https://github.com/pesde-pkg/index"
 
-[graph."jiwonz/glob@0.1.0 lune".pkg_ref.dependencies]
+[graph."jiwonz/glob@0.1.1 lune".pkg_ref.dependencies]
 globrex_lune = [{ name = "kimpure/globrex_lune", version = "^0.2.4", index = "https://github.com/pesde-pkg/index" }, "standard"]
+luau_check = [{ name = "jiwonz/luau_check", version = "^0.3.13", index = "https://github.com/pesde-pkg/index" }, "dev"]
 luau_lsp = [{ name = "pesde/luau_lsp", version = "^1.37.0", index = "https://github.com/pesde-pkg/index" }, "dev"]
-pathfs = [{ name = "jiwonz/pathfs", version = "^0.3.0", index = "https://github.com/pesde-pkg/index" }, "standard"]
-selene = [{ name = "pesde/selene", version = "^0.27.1", index = "https://github.com/pesde-pkg/index" }, "dev"]
+pathfs = [{ name = "jiwonz/pathfs", version = "^0.6.0-rc.3", index = "https://github.com/pesde-pkg/index" }, "standard"]
+selene = [{ name = "pesde/selene", version = "^0.28.0", index = "https://github.com/pesde-pkg/index" }, "dev"]
 stylua = [{ name = "pesde/stylua", version = "^2.0.2", index = "https://github.com/pesde-pkg/index" }, "dev"]
 
 [graph."jiwonz/luau_check@0.3.13 lune"]
@@ -171,7 +172,13 @@ resolved_ty = "standard"
 
 [graph."jiwonz/luau_regexp@0.1.2 luau".pkg_ref]
 ref_ty = "pesde"
-index_url = "https://github.com/pesde-pkg/index"
+index_url = "https://github.com/daimond113/pesde-index"
+
+[graph."jiwonz/luau_path@0.1.3 luau".pkg_ref.dependencies]
+luau_disk = [{ name = "jiwonz/luau_disk", version = "^0.1.4", index = "https://github.com/pesde-pkg/index" }, "standard"]
+
+[graph."jiwonz/luau_regexp@0.1.3 luau"]
+resolved_ty = "standard"
 
 [graph."jiwonz/pathfs@0.3.2 lune"]
 resolved_ty = "standard"
@@ -222,6 +229,26 @@ ref_ty = "pesde"
 index_url = "https://github.com/pesde-pkg/index"
 
 [graph."jiwonz/pathfs@0.6.0-rc.3 lune".pkg_ref.dependencies]
+frktest = [{ name = "itsfrank/frktest", version = "^0.0.2", index = "https://github.com/daimond113/pesde-index" }, "dev"]
+greentea = [{ name = "corecii/greentea", version = "^0.4.11", index = "https://github.com/daimond113/pesde-index" }, "standard"]
+luau_check = [{ name = "jiwonz/luau_check", version = "^0.3.13", index = "https://github.com/daimond113/pesde-index" }, "dev"]
+luau_lsp = [{ name = "pesde/luau_lsp", version = "^1.42.1", index = "https://github.com/daimond113/pesde-index" }, "dev"]
+luau_path = [{ name = "jiwonz/luau_path", version = "^0.1.3", index = "https://github.com/daimond113/pesde-index", target = "luau" }, "standard"]
+selene = [{ name = "pesde/selene", version = "^0.28.0", index = "https://github.com/daimond113/pesde-index" }, "dev"]
+stylua = [{ name = "pesde/stylua", version = "^2.0.2", index = "https://github.com/daimond113/pesde-index" }, "dev"]
+
+[graph."jiwonz/pathfs@0.6.0-rc.4 lune"]
+resolved_ty = "standard"
+
+[graph."jiwonz/pathfs@0.6.0-rc.4 lune".dependencies]
+"corecii/greentea@0.4.11 lune" = "greentea"
+"jiwonz/luau_path@0.1.3 luau" = "luau_path"
+
+[graph."jiwonz/pathfs@0.6.0-rc.4 lune".pkg_ref]
+ref_ty = "pesde"
+index_url = "https://github.com/pesde-pkg/index"
+
+[graph."jiwonz/pathfs@0.6.0-rc.4 lune".pkg_ref.dependencies]
 frktest = [{ name = "itsfrank/frktest", version = "^0.0.2", index = "https://github.com/daimond113/pesde-index" }, "dev"]
 greentea = [{ name = "corecii/greentea", version = "^0.4.11", index = "https://github.com/daimond113/pesde-index" }, "standard"]
 luau_check = [{ name = "jiwonz/luau_check", version = "^0.3.13", index = "https://github.com/daimond113/pesde-index" }, "dev"]
