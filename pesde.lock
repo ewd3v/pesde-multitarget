@@ -2,7 +2,7 @@
 # It is not intended for manual editing.
 format = 2
 name = "jiwonz/multitarget"
-version = "0.4.0-rc.29"
+version = "0.4.0-rc.30"
 target = "lune"
 
 [graph."caveful_games/argparse@0.1.2 lune"]
