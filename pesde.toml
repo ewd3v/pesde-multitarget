@@ -22,7 +22,7 @@ lune = "^0.9.4"
 pesde = "^0.7.0-rc.1"
 
 [dependencies]
-pathfs = { name = "jiwonz/pathfs", version = "^0.6.0-rc.3" }
+pathfs = { name = "jiwonz/pathfs", version = "^0.6.0-rc.8" }
 greentea = { name = "corecii/greentea", version = "^0.4.11" }
 argparse = { name = "caveful_games/argparse", version = "^0.1.2" }
 glob = { name = "jiwonz/glob", version = "^0.1.1" }

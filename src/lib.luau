@@ -131,7 +131,7 @@ function multitarget.build(
 	end
 	-- selene: allow(shadowing)
 	local outputDir = pathfs.Directory.create(outputPath)
-	local workingDirPath = pesdeTomlFile.path:parent() or pathfs.cwd()
+	local workingDirPath = pathfs.canonicalize(pesdeTomlFile.path):parent() or pathfs.cwd()
 
 	local pesdeToml: {
 		includes: { string }?,
@@ -236,7 +236,8 @@ function multitarget.build(
 					})
 				do
 					local dest = targetDir.path:join(
-						path:stripPrefix(workingDirPath)
+						-- Should be computed in normalized absolute path to avoid issues with relative paths
+						pathfs.canonicalize(path):stripPrefix(workingDirPath)
 							or error(
 								`include glob "{include}" found file {path} which is not prefixed by {workingDirPath}`
 							) -- this shouldn't really happen
