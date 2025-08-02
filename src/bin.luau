@@ -230,11 +230,11 @@ setup:action(function()
 		end
 	end
 	do
-		local ok, result = pcall(process.spawn, "darklua", { "--version" })
+		local ok, result = pcall(process.exec, "darklua", { "--version" })
 		if not ok or (ok and not result.ok) then
 			if stdio.prompt("confirm", `darklua is not found. Would you like to install it from pesde?`) then
-				process.spawn("pesde", { "add", "pesde/darklua", "--dev", "-t", "lune" }, { stdio = "forward" })
-				process.spawn("pesde", { "install" }, { stdio = "forward" })
+				process.exec("pesde", { "add", "pesde/darklua", "--dev", "-t", "lune" }, { stdio = "forward" })
+				process.exec("pesde", { "install" }, { stdio = "forward" })
 			end
 		end
 	end

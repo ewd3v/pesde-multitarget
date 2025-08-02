@@ -315,13 +315,13 @@ function multitarget.build(
 			end
 			table.insert(params, "--target")
 			table.insert(params, target)
-			local result = process.spawn("pesde", params, {
+			local result = process.exec("pesde", params, {
 				cwd = targetDir.path:toString(),
 				stdio = "inherit",
 			})
 			if not result.ok and target == "lune" then
 				params[#params] = "luau"
-				result = process.spawn("pesde", params, {
+				result = process.exec("pesde", params, {
 					cwd = targetDir.path:toString(),
 					stdio = "inherit",
 				})
@@ -353,7 +353,7 @@ function multitarget.build(
 			end
 			if target == "roblox" then
 				-- need to install dependencies for darklua
-				local result = process.spawn("pesde", { "install" }, {
+				local result = process.exec("pesde", { "install" }, {
 					cwd = outputDir.path:toString(),
 					stdio = "inherit",
 				})
