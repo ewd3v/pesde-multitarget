@@ -40,6 +40,7 @@ build:flag("-a --all", "Build for every targets (luau, lune, roblox)")
 build:option("--build-files", "Paths to build files"):args("*")
 build:flag("-y --yes", "Automatically confirm prompts without asking")
 build:flag("--non-strict", "Do not fail the build when there are errors while re-adding dependencies")
+build:flag("--require-mode", "Which darklua require mode the current source code is using"):default("luau")
 build:action(function(args: {
 	project: string,
 	output: string,
@@ -53,6 +54,7 @@ build:action(function(args: {
 	build_files: { string }?,
 	yes: boolean,
 	non_strict: boolean,
+	require_mode: string,
 })
 	local output = args.output
 	if fs.isDir(output) then
@@ -81,7 +83,8 @@ build:action(function(args: {
 		args.global,
 		args.pkg,
 		args.luau_pkg,
-		not args.non_strict
+		not args.non_strict,
+		args.require_mode
 	)
 	if result:isErr() then
 		local err = result:unwrapErr()

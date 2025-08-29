@@ -59,6 +59,16 @@ local optionalStringArrayType = gt.build(gt.opt(gt.array(gt.string())))
 local optionalAsPathType = gt.build(gt.opt(pathfs.types.AsPath:type()))
 local optionalBooleanType = gt.build(gt.opt(gt.boolean()))
 
+local requireModeName = gt.union(gt.literal("path"), gt.literal("luau"))
+local optionalRequireModeType = gt.build(gt.opt(gt.union(
+	requireModeName,
+	gt.table({
+		name = requireModeName,
+		sources = gt.opt(gt.dictionary(gt.string(), gt.string())),
+		use_luau_configuration = gt.opt(gt.boolean()),
+	})
+)))
+
 --[=[
 	@within multitarget
 	@param pesdeTomlPath string? -- Path to the `pesde.toml` file. Default is `pesde.toml`.
@@ -68,6 +78,7 @@ local optionalBooleanType = gt.build(gt.opt(gt.boolean()))
 	@param luaEnvGlobal string? -- Lua environment global variable name. Default is `LUA_ENV`.
 	@param pkgAlias string? -- Package alias name. Default is `pkg`.
 	@param strict boolean? -- Stop the process if any error occurs while re-adding dependencies. Defaults to `true`.
+	@param requireMode (string | { name: string, sources: { [string]: string }?, use_luau_configuration: boolean? })? -- What require mode darklua should use when transforming code
 
 	Builds a pesde project for multiple targets
 
@@ -95,7 +106,8 @@ function multitarget.build(
 	luaEnvGlobal: typeof(optionalStringType:type()),
 	pkgAlias: typeof(optionalStringType:type()),
 	luauPkgAlias: typeof(optionalStringType:type()),
-	strict: typeof(optionalBooleanType:type())
+	strict: typeof(optionalBooleanType:type()),
+	requireMode: typeof(optionalRequireModeType:type())
 ): Result.Result<pathfs.Directory, {
 	message: string,
 	outputDir: pathfs.Directory?,
@@ -108,6 +120,7 @@ function multitarget.build(
 	optionalStringType:assert(pkgAlias)
 	optionalStringType:assert(luauPkgAlias)
 	optionalBooleanType:assert(strict)
+	optionalRequireModeType:assert(requireMode)
 
 	-- selene: allow(shadowing)
 	local luauPkgAlias = luauPkgAlias or DEFAULT_LUAU_PKG_ALIAS
@@ -368,16 +381,20 @@ function multitarget.build(
 				for _, buildFile in buildFiles do
 					local darkluaOutputPath = targetDir.path:join(buildFile)
 
+					local currentRequireMode = if type(requireMode) == "table"
+						then requireMode
+						else {
+							name = requireMode or "luau",
+						}
+
 					local rules = {
 						injectGlobalValueRule :: any,
 						{
 							rule = "convert_require",
-							current = {
-								name = "path",
-							},
+							current = currentRequireMode,
 							target = {
 								name = "roblox",
-								indexing_style = "property",
+								indexing_style = "find_first_child",
 								rojo_sourcemap = if fs.isFile("sourcemap.json") then "sourcemap.json" else nil,
 							},
 						},
