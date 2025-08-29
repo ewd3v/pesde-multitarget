@@ -59,6 +59,16 @@ local optionalStringArrayType = gt.build(gt.opt(gt.array(gt.string())))
 local optionalAsPathType = gt.build(gt.opt(pathfs.types.AsPath:type()))
 local optionalBooleanType = gt.build(gt.opt(gt.boolean()))
 
+local requireModeName = gt.union(gt.literal("path"), gt.literal("luau"))
+local optionalRequireModeType = gt.build(gt.opt(gt.union(
+	requireModeName,
+	gt.table({
+		name = requireModeName,
+		sources = gt.opt(gt.dictionary(gt.string(), gt.string())),
+		use_luau_configuration = gt.opt(gt.boolean()),
+	})
+)))
+
 --[=[
 	@within multitarget
 	@param pesdeTomlPath string? -- Path to the `pesde.toml` file. Default is `pesde.toml`.
@@ -68,6 +78,7 @@ local optionalBooleanType = gt.build(gt.opt(gt.boolean()))
 	@param luaEnvGlobal string? -- Lua environment global variable name. Default is `LUA_ENV`.
 	@param pkgAlias string? -- Package alias name. Default is `pkg`.
 	@param strict boolean? -- Stop the process if any error occurs while re-adding dependencies. Defaults to `true`.
+	@param requireMode (string | { name: string, sources: { [string]: string }?, use_luau_configuration: boolean? })? -- What require mode darklua should use when transforming code
 
 	Builds a pesde project for multiple targets
 
@@ -95,7 +106,8 @@ function multitarget.build(
 	luaEnvGlobal: typeof(optionalStringType:type()),
 	pkgAlias: typeof(optionalStringType:type()),
 	luauPkgAlias: typeof(optionalStringType:type()),
-	strict: typeof(optionalBooleanType:type())
+	strict: typeof(optionalBooleanType:type()),
+	requireMode: typeof(optionalRequireModeType:type())
 ): Result.Result<pathfs.Directory, {
 	message: string,
 	outputDir: pathfs.Directory?,
@@ -108,6 +120,7 @@ function multitarget.build(
 	optionalStringType:assert(pkgAlias)
 	optionalStringType:assert(luauPkgAlias)
 	optionalBooleanType:assert(strict)
+	optionalRequireModeType:assert(requireMode)
 
 	-- selene: allow(shadowing)
 	local luauPkgAlias = luauPkgAlias or DEFAULT_LUAU_PKG_ALIAS
@@ -123,7 +136,7 @@ function multitarget.build(
 	local pkgAlias = pkgAlias or DEFAULT_PKG_ALIAS
 	-- selene: allow(shadowing)
 	local pesdeTomlFile = pathfs.File.fromExisting(pesdeTomlPath)
-	local outputDir = pathfs.findDirectory(outputPath)
+	local outputDir = pathfs.findDir(outputPath)
 	if outputDir then
 		return Result.Err({
 			message = `Output directory '{outputDir.path}' already exists.`,
@@ -131,7 +144,7 @@ function multitarget.build(
 	end
 	-- selene: allow(shadowing)
 	local outputDir = pathfs.Directory.create(outputPath)
-	local workingDirPath = pesdeTomlFile.path:parent() or pathfs.cwd()
+	local workingDirPath = pathfs.canonicalize(pesdeTomlFile.path):parent() or pathfs.cwd()
 
 	local pesdeToml: {
 		includes: { string }?,
@@ -236,7 +249,8 @@ function multitarget.build(
 					})
 				do
 					local dest = targetDir.path:join(
-						path:stripPrefix(workingDirPath)
+						-- Should be computed in normalized absolute path to avoid issues with relative paths
+						pathfs.canonicalize(path):stripPrefix(workingDirPath)
 							or error(
 								`include glob "{include}" found file {path} which is not prefixed by {workingDirPath}`
 							) -- this shouldn't really happen
@@ -315,13 +329,13 @@ function multitarget.build(
 			end
 			table.insert(params, "--target")
 			table.insert(params, target)
-			local result = process.spawn("pesde", params, {
+			local result = process.exec("pesde", params, {
 				cwd = targetDir.path:toString(),
 				stdio = "inherit",
 			})
 			if not result.ok and target == "lune" then
 				params[#params] = "luau"
-				result = process.spawn("pesde", params, {
+				result = process.exec("pesde", params, {
 					cwd = targetDir.path:toString(),
 					stdio = "inherit",
 				})
@@ -353,7 +367,7 @@ function multitarget.build(
 			end
 			if target == "roblox" then
 				-- need to install dependencies for darklua
-				local result = process.spawn("pesde", { "install" }, {
+				local result = process.exec("pesde", { "install" }, {
 					cwd = outputDir.path:toString(),
 					stdio = "inherit",
 				})
@@ -367,16 +381,20 @@ function multitarget.build(
 				for _, buildFile in buildFiles do
 					local darkluaOutputPath = targetDir.path:join(buildFile)
 
+					local currentRequireMode = if type(requireMode) == "table"
+						then requireMode
+						else {
+							name = requireMode or "luau",
+						}
+
 					local rules = {
 						injectGlobalValueRule :: any,
 						{
 							rule = "convert_require",
-							current = {
-								name = "path",
-							},
+							current = currentRequireMode,
 							target = {
 								name = "roblox",
-								indexing_style = "property",
+								indexing_style = "find_first_child",
 								rojo_sourcemap = if fs.isFile("sourcemap.json") then "sourcemap.json" else nil,
 							},
 						},
