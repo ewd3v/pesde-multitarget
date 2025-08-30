@@ -334,60 +334,57 @@ function multitarget.build(
 				})
 			end
 		end
+	end
 
-		local injectGlobalValueRule = {
-			rule = "inject_global_value",
-			identifier = luaEnvGlobal,
-			value = target,
-		}
-		if buildFiles then
-			for _, buildFile in buildFiles do
-				local darkluaOutputPath = targetDir.path:join(buildFile)
+	local result = process.exec("pesde", { "install" }, {
+		cwd = outputDir.path:toString(),
+		stdio = "inherit",
+	})
 
-				local rules = { injectGlobalValueRule :: any }
-				for _, rule in DEFAULT_DARKLUA_RULES do
-					table.insert(rules, rule)
-				end
-				darklua.process(buildFile, darkluaOutputPath:toString(), {
-					rules = rules,
+	if not result.ok then
+		return Result.Err({
+			message = `Failed to install dependencies.`,
+			outputDir = outputDir,
+		})
+	end
+
+	if buildFiles then
+		for target: "lune" | "luau" | "roblox", value in targets :: { [any]: boolean? } do
+			if not value then
+				continue
+			end
+
+			local targetDir = pathfs.Directory.new(outputDir.path:join(target))
+			local injectGlobalValueRule = {
+				rule = "inject_global_value",
+				identifier = luaEnvGlobal,
+				value = target,
+			}
+
+			local rules = { injectGlobalValueRule :: any }
+			for _, rule in DEFAULT_DARKLUA_RULES do
+				table.insert(rules, rule)
+			end
+
+			if target == "roblox" then
+				table.insert(rules, {
+					rule = "convert_require",
+					current = {
+						name = "path",
+					},
+					target = {
+						name = "roblox",
+						indexing_style = "property",
+						rojo_sourcemap = if fs.isFile("sourcemap.json") then "sourcemap.json" else nil,
+					},
 				})
 			end
-			if target == "roblox" then
-				-- need to install dependencies for darklua
-				local result = process.exec("pesde", { "install" }, {
-					cwd = outputDir.path:toString(),
-					stdio = "inherit",
+
+			for _, buildFile in buildFiles do
+				local darkluaOutputPath = targetDir.path:join(buildFile):toString()
+				darklua.process(buildFile, darkluaOutputPath, {
+					rules = rules,
 				})
-				if not result.ok then
-					return Result.Err({
-						message = `Failed to install dependencies for '{target}' target.`,
-						outputDir = outputDir,
-					})
-				end
-
-				for _, buildFile in buildFiles do
-					local darkluaOutputPath = targetDir.path:join(buildFile)
-
-					local rules = {
-						injectGlobalValueRule :: any,
-						{
-							rule = "convert_require",
-							current = {
-								name = "path",
-							},
-							target = {
-								name = "roblox",
-								indexing_style = "property",
-								rojo_sourcemap = if fs.isFile("sourcemap.json") then "sourcemap.json" else nil,
-							},
-						},
-					}
-					darklua.process(darkluaOutputPath:toString(), darkluaOutputPath:toString(), {
-						rules = rules,
-					}, {
-						stdio = "inherit",
-					})
-				end
 			end
 		end
 	end
