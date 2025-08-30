@@ -40,7 +40,7 @@ build:flag("-a --all", "Build for every targets (luau, lune, roblox)")
 build:option("--build-files", "Paths to build files"):args("*")
 build:flag("-y --yes", "Automatically confirm prompts without asking")
 build:flag("--non-strict", "Do not fail the build when there are errors while re-adding dependencies")
-build:flag("--require-mode", "Which darklua require mode the current source code is using"):default("luau")
+build:option("--require-mode", "Which darklua require mode the current source code is using"):default("luau")
 build:action(function(args: {
 	project: string,
 	output: string,
