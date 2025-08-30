@@ -1,8 +1,8 @@
-name = "jiwonz/multitarget"
-version = "0.4.0-rc.30"
-description = "Customizable and flexible build script for multiple pesde targets"
-authors = ["jiwonz <me@jiwonz.kr>"]
-repository = "https://github.com/jiwonz/pesde-multitarget"
+name = "ewdev/multitarget"
+version = "0.4.2-rc.2"
+description = "[Fork] Customizable and flexible build script for multiple pesde targets"
+authors = ["jiwonz <me@jiwonz.kr>", "EwDev (https://ewdev.net/)"]
+repository = "https://github.com/ewd3v/pesde-multitarget"
 license = "MIT"
 includes = ["src/**", "LICENSE", "README.md", "pesde.toml"]
 
