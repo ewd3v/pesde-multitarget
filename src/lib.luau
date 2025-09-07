@@ -380,14 +380,18 @@ function multitarget.build(
 			end
 
 			if target == "roblox" then
+				local currentRequireMode = if type(requireMode) == "table"
+					then requireMode
+					else {
+						name = requireMode or "luau",
+					}
+
 				table.insert(rules, {
 					rule = "convert_require",
-					current = {
-						name = "path",
-					},
+					current = currentRequireMode,
 					target = {
 						name = "roblox",
-						indexing_style = "property",
+						indexing_style = "find_first_child",
 						rojo_sourcemap = if fs.isFile("sourcemap.json") then "sourcemap.json" else nil,
 					},
 				})
