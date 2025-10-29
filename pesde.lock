@@ -18,13 +18,6 @@ luau_lsp = [{ name = "pesde/luau_lsp", version = "^1.38.0", index = "https://git
 selene = [{ name = "pesde/selene", version = "^0.27.1", index = "https://github.com/pesde-pkg/index" }, "dev"]
 stylua = [{ name = "pesde/stylua", version = "^2.0.2", index = "https://github.com/pesde-pkg/index" }, "dev"]
 
-[graph."caveful_games/table_helper@0.2.0-rc.1 luau"]
-direct = ["table_helper", { name = "caveful_games/table_helper", version = "^0.2.0-rc.1", index = "default", target = "luau" }, "standard"]
-
-[graph."caveful_games/table_helper@0.2.0-rc.1 luau".pkg_ref]
-ref_ty = "pesde"
-index_url = "https://github.com/pesde-pkg/index"
-
 [graph."jiwonz/darklua_lune@0.3.0 lune"]
 direct = ["darklua_lune", { name = "jiwonz/darklua_lune", version = "^0.3.0", index = "default" }, "standard"]
 

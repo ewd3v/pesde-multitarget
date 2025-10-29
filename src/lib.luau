@@ -7,7 +7,9 @@ local glob = require("../lune_packages/glob")
 local process = require("@lune/process")
 local darklua = require("../lune_packages/darklua_lune")
 local Result = require("../lune_packages/result")
-local tableHelper = require("../luau_packages/table_helper")
+
+local set = require("./tableUtils/set")
+local copy = require("./tableUtils/copy")
 
 local DEFAULT_DARKLUA_RULES = {
 	"remove_unused_if_branch",
@@ -240,7 +242,7 @@ function multitarget.build(
 		targetDir:writeDir() -- assure it exists (may not exist later if the user uses "includes" incorrectly, which would throw an undescriptive error later when trying to access this directory)
 
 		-- selene: allow(shadowing)
-		local newPesdeToml = tableHelper.copy(pesdeToml, true)
+		local newPesdeToml = copy(pesdeToml, true)
 		if newPesdeToml.includes then
 			for _, include in newPesdeToml.includes do
 				for _, path in
@@ -290,12 +292,12 @@ function multitarget.build(
 			} = if luaurcFile:isFile()
 				then serde.decode("json", luaurcFile:readFile())
 				else {}
-			tableHelper.set(luaurc, { "aliases", pkgAlias }, `./{target}_packages/`)
+			set(luaurc, { "aliases", pkgAlias }, `./{target}_packages/`)
 			if targets.lune then
 				if target == "lune" then
-					tableHelper.set(luaurc, { "aliases", luauPkgAlias }, `./luau_packages/`)
+					set(luaurc, { "aliases", luauPkgAlias }, `./luau_packages/`)
 				elseif target == "roblox" then
-					tableHelper.set(luaurc, { "aliases", luauPkgAlias }, `./roblox_packages/`)
+					set(luaurc, { "aliases", luauPkgAlias }, `./roblox_packages/`)
 				end
 			end
 			luaurcFile:writeFile(serde.encode("json", luaurc, true))
