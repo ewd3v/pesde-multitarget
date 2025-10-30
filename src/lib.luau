@@ -2,11 +2,12 @@ local stdio = require("@lune/stdio")
 local serde = require("@lune/serde")
 local pathfs = require("../lune_packages/pathfs")
 local fs = pathfs.fs
-local gt = require("../lune_packages/greentea")
+local gt = require("../luau_packages/greentea")
 local glob = require("../lune_packages/glob")
 local process = require("@lune/process")
 local darklua = require("../lune_packages/darklua_lune")
 local Result = require("../lune_packages/result")
+local pathfsTypes = require("./pathfsTypes")
 
 local set = require("./tableUtils/set")
 local copy = require("./tableUtils/copy")
@@ -58,7 +59,7 @@ local targetsType = gt.build(gt.table({
 local environmentType = gt.build(gt.union(gt.literal("luau"), gt.literal("lune"), gt.literal("roblox")))
 local optionalStringType = gt.build(gt.opt(gt.string()))
 local optionalStringArrayType = gt.build(gt.opt(gt.array(gt.string())))
-local optionalAsPathType = gt.build(gt.opt(pathfs.types.AsPath:type()))
+local optionalAsPathType = gt.build(gt.opt(pathfsTypes.AsPathType:type()))
 local optionalBooleanType = gt.build(gt.opt(gt.boolean()))
 
 local requireModeName = gt.union(gt.literal("path"), gt.literal("luau"))
@@ -114,8 +115,8 @@ function multitarget.build(
 	message: string,
 	outputDir: pathfs.Directory?,
 }>
-	pathfs.types.AsPath:assert(pesdeTomlPath)
-	pathfs.types.AsPath:assert(outputPath)
+	pathfsTypes.AsPathType:assert(pesdeTomlPath)
+	pathfsTypes.AsPathType:assert(outputPath)
 	targetsType:assert(targets)
 	optionalStringArrayType:assert(buildFiles)
 	optionalStringType:assert(luaEnvGlobal)

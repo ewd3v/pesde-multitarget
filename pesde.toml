@@ -29,3 +29,4 @@ glob = { name = "jiwonz/glob", version = "^0.2.0" }
 darklua_lune = { name = "jiwonz/darklua_lune", version = "^0.3.0" }
 result = { name = "lukadev_0/result", version = "^1.2.1" }
 chalk_luau = { name = "kimpure/chalk_luau", version = "^0.1.8", target = "luau" }
+luau_path = { name = "jiwonz/luau_path", version = "^0.2.0", target = "luau" }
