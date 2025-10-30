@@ -111,9 +111,9 @@ function multitarget.build(
 	luauPkgAlias: typeof(optionalStringType:type()),
 	strict: typeof(optionalBooleanType:type()),
 	requireMode: typeof(optionalRequireModeType:type())
-): Result.Result<pathfs.Directory, {
+): Result.Result<pathfs.DirectoryPath, {
 	message: string,
-	outputDir: pathfs.Directory?,
+	outputDir: pathfs.DirectoryPath?,
 }>
 	pathfsTypes.AsPathType:assert(pesdeTomlPath)
 	pathfsTypes.AsPathType:assert(outputPath)
@@ -138,7 +138,7 @@ function multitarget.build(
 	-- selene: allow(shadowing)
 	local pkgAlias = pkgAlias or DEFAULT_PKG_ALIAS
 	-- selene: allow(shadowing)
-	local pesdeTomlFile = pathfs.File.fromExisting(pesdeTomlPath)
+	local pesdeTomlFile = pathfs.FilePath.fromExisting(pesdeTomlPath)
 	local outputDir = pathfs.findDir(outputPath)
 	if outputDir then
 		return Result.Err({
@@ -146,7 +146,7 @@ function multitarget.build(
 		})
 	end
 	-- selene: allow(shadowing)
-	local outputDir = pathfs.Directory.create(outputPath)
+	local outputDir = pathfs.DirectoryPath.new(outputPath):withDirWritten()
 	local workingDirPath = pathfs.canonicalize(pesdeTomlFile.path):parent() or pathfs.cwd()
 
 	local pesdeToml: {
@@ -239,7 +239,7 @@ function multitarget.build(
 		end
 		environmentType:assert(target)
 
-		local targetDir = pathfs.Directory.new(outputDir.path:join(target))
+		local targetDir = pathfs.DirectoryPath.new(outputDir.path:join(target))
 		targetDir:writeDir() -- assure it exists (may not exist later if the user uses "includes" incorrectly, which would throw an undescriptive error later when trying to access this directory)
 
 		-- selene: allow(shadowing)
@@ -287,7 +287,7 @@ function multitarget.build(
 		newPesdeToml.private = nil
 
 		if #pesdeAddParams > 0 then -- there are dependencies
-			local luaurcFile = pathfs.File.new(targetDir.path:join(".luaurc"))
+			local luaurcFile = pathfs.FilePath.new(targetDir.path:join(".luaurc"))
 			local luaurc: {
 				aliases: { [string]: string? }?,
 			} = if luaurcFile:isFile()
@@ -370,7 +370,7 @@ function multitarget.build(
 				continue
 			end
 
-			local targetDir = pathfs.Directory.new(outputDir.path:join(target))
+			local targetDir = pathfs.DirectoryPath.new(outputDir.path:join(target))
 			local injectGlobalValueRule = {
 				rule = "inject_global_value",
 				identifier = luaEnvGlobal,
