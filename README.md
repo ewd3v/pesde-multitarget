@@ -1,6 +1,4 @@
-Fork of https://github.com/jiwonz/pesde-multitarget containing my fixes & updates that may not merged into the official repository yet.
-
-# [pesde-multitarget](https://pesde.dev/packages/ewdev/multitarget)
+# [pesde-multitarget](https://pesde.dev/packages/jiwonz/multitarget)
 Customizable and flexible build script for multiple pesde targets
 
 Build your pure pesde project easier targeting both `luau` and `roblox` targets at the same time.
@@ -13,7 +11,7 @@ Add & Install this pesde package and darklua as a dev_dependency:
 ```sh
 pesde add pesde/darklua --dev -t lune # Pass if darklua is installed already.
 
-pesde add ewdev/multitarget --dev -t lune
+pesde add jiwonz/multitarget --dev -t lune
 
 pesde install
 ```
@@ -55,7 +53,7 @@ pesde run build
 ### `pesde x`
 Execute directly without installation:
 ```sh
-pesde x ewdev/multitarget -- --help
+pesde x jiwonz/multitarget -- --help
 ```
 
 ## Usage
@@ -70,7 +68,7 @@ multitarget setup
 ```
 With `pesde x`:
 ```sh
-pesde x ewdev/multitarget -- setup
+pesde x jiwonz/multitarget -- setup
 ```
 
 ### `build`
@@ -90,5 +88,5 @@ multitarget build -w -a --build-files src # Build for every(-a --all) targets wi
 ```
 With `pesde x`:
 ```sh
-pesde x ewdev/multitarget -- build ...
+pesde x jiwonz/multitarget -- build ...
 ```
