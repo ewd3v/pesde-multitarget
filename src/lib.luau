@@ -398,8 +398,8 @@ function multitarget.build(
 			end
 
 			for _, buildFile in buildFiles do
-				local darkluaOutputPath = targetDir.path:join(buildFile):toString()
-				darklua.process(buildFile, darkluaOutputPath, {
+				local targetBuildFile = targetDir.path:join(buildFile):toString()
+				darklua.process(targetBuildFile, targetBuildFile, {
 					rules = rules,
 				})
 			end
