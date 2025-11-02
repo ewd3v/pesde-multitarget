@@ -242,6 +242,31 @@ function multitarget.build(
 		local targetDir = pathfs.DirectoryPath.new(outputDir.path:join(target))
 		targetDir:writeDir() -- assure it exists (may not exist later if the user uses "includes" incorrectly, which would throw an undescriptive error later when trying to access this directory)
 
+		local globIgnore = {}
+		if buildFiles then
+			for _, buildFile in buildFiles do
+				local destination = targetDir.path:join(buildFile)
+				local parent = destination:parent()
+				if parent then
+					fs.writeDir(parent)
+				end
+
+				fs.copy(buildFile, destination, true)
+
+				local wdFilePath = pathfs.canonicalize(buildFile):stripPrefix(workingDirPath)
+				if not wdFilePath then
+					continue
+				end
+
+				local wdFilePathStr = wdFilePath:toString()
+				if fs.isFile(buildFile) then
+					table.insert(globIgnore, wdFilePathStr)
+				elseif fs.isDir(buildFile) then
+					table.insert(globIgnore, wdFilePathStr .. "/**")
+				end
+			end
+		end
+
 		-- selene: allow(shadowing)
 		local newPesdeToml = copy(pesdeToml, true)
 		if newPesdeToml.includes then
@@ -249,6 +274,7 @@ function multitarget.build(
 				for _, path in
 					glob(include, {
 						cwd = workingDirPath,
+						ignore = globIgnore, -- We don't have to process these as everything in this list already got copied over in the step above
 					})
 				do
 					local dest = targetDir.path:join(
