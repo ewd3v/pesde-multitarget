@@ -1,5 +1,5 @@
 name = "ewdev/multitarget"
-version = "0.4.2-rc.6"
+version = "0.4.2-rc.7"
 description = "[Fork] Customizable and flexible build script for multiple pesde targets"
 authors = ["jiwonz <me@jiwonz.kr>", "EwDev (https://ewdev.net/)"]
 repository = "https://github.com/ewd3v/pesde-multitarget"
