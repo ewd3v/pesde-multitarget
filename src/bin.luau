@@ -126,7 +126,7 @@ end
 local setup = cli:command("setup", "Setup your project before building")
 setup:action(function()
 	do
-		local pesdeToml = pathfs.File.new("pesde.toml")
+		local pesdeToml = pathfs.FilePath.new("pesde.toml")
 		if not pesdeToml:isFile() then
 			stdio.ewrite(`{ERROR_PREFIX} pesde.toml is not found. Are you in the right directory?\n`)
 			process.exit(1)
@@ -146,7 +146,7 @@ setup:action(function()
 				`{WARN_PREFIX} It is recommended to set 'private = true' in pesde.toml to prevent accidental publishing the root project.`
 			)
 		end
-		local luaurcFile = pathfs.File.new(".luaurc")
+		local luaurcFile = pathfs.FilePath.new(".luaurc")
 		local luaurc: {
 			aliases: { [string]: string? }?,
 		} = if luaurcFile:isFile()
@@ -243,7 +243,7 @@ setup:action(function()
 		end
 	end
 	do
-		local declarationFile = pathfs.File.new(".d.luau")
+		local declarationFile = pathfs.FilePath.new(".d.luau")
 		if not declarationFile:isFile() then
 			if
 				stdio.prompt(
@@ -256,8 +256,8 @@ setup:action(function()
 		end
 	end
 	do
-		local vscodeDir = pathfs.Directory.new(".vscode")
-		local vscodeSettings = pathfs.File.new(vscodeDir.path:join("settings.json"))
+		local vscodeDir = pathfs.DirectoryPath.new(".vscode")
+		local vscodeSettings = pathfs.FilePath.new(vscodeDir.path:join("settings.json"))
 		local settings: {
 			["luau-lsp.types.definitionFiles"]: { string }?,
 		} = if vscodeSettings:isFile()
@@ -293,7 +293,7 @@ end)
 
 local version = cli:command("version", "Show the version of multitarget")
 version:action(function()
-	local multitargetPesdeToml = pathfs.File.fromExisting(pathfs.Path.from(_G.PESDE_ROOT):join("pesde.toml"))
+	local multitargetPesdeToml = pathfs.FilePath.fromExisting(pathfs.Path.from(_G.PESDE_ROOT):join("pesde.toml"))
 	local pesdeManifest: {
 		version: string,
 	} = serde.decode("toml", multitargetPesdeToml:readFile())
